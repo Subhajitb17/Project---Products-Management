@@ -190,7 +190,7 @@ const deleteBooksbyId = async (req, res) => {
     let decodedToken = jwt.verify(token, "group66-project3")          // Authorization
     if (findBooksbyId.userId != decodedToken.userId) { return res.status(403).send({ status: false, msg: "not authorized!" }) }
 
-    const deletedBooks = await booksModel.findOneAndUpdate(
+    await booksModel.findOneAndUpdate(
       { _id: bookId, isDeleted: false },
       { $set: { isDeleted: true, deletedAt: new Date() } },
       { new: true })
