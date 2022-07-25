@@ -43,7 +43,6 @@ const createUser = async (req, res) => {
 
         //upload book cover(a file) by aws
         let files = req.files
-        console.log(files)
         let uploadFileURL;
         if (files && files.length > 0) {
             uploadFileURL = await aws.uploadFile(files[0])
