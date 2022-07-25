@@ -1,6 +1,5 @@
 const booksModel = require("../models/productModel");
 const reviewModel = require("../models/cartModel")
-const moment = require("moment")
 const { objectValue, keyValue, numberValue, ratingRegex, isValidObjectId, strRegex } = require("../middleware/validator");  // IMPORTING VALIDATORS
 
 
@@ -14,7 +13,7 @@ const createReviews = async (req, res) => {
 
     const bookId = req.params.bookId
 
-    const reviewedAt = moment().format()           // Moment used here
+    // const reviewedAt = moment().format()           // Moment used here
 
     if (!isValidObjectId(bookId)) return res.status(400).send({ status: false, msg: "bookId is invalid!" })  // 1st V used here
 

@@ -4,14 +4,14 @@ const userController = require("../controllers/userController");
 const booksController = require("../controllers/booksController");
 const reviewController = require("../controllers/reviewController");
 const middleware = require("../middleware/auth")
-const aws = require("../Cloud computing/aws")
+const aws = require("../aws/s3")
 
 
 route.post("/register" , userController.createUser)
 
 route.post("/login" , userController.loginUser)
 
-route.post("/write-file-aws", aws.uploadBookcover)
+// route.post("/write-file-aws", aws.uploadBookcover)
 
 route.post("/books" ,middleware.authentication, booksController.createBooks)
 

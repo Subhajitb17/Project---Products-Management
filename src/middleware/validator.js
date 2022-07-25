@@ -12,7 +12,7 @@ const isValidObjectId = (objectId) => {
 
 const objectValue = (value) => {
   if (typeof value === "undefined" || value === null || typeof value === "boolean" || typeof value === "number") return false;
-  if (typeof value === "string" && value.length === 0) return false;
+  if (typeof value === "string" && value.trim().length === 0) return false;
   return true;
 };
 
@@ -106,7 +106,7 @@ const isValidArray = (value) => {
 
 const booleanValue = (value) => {
   if (typeof value === "undefined" || typeof value === "string" || value === null || typeof value === "number" || typeof value === true) return false;
-  if (typeof value === false && value.length === 0) return false;
+  if (typeof value === false && value.trim().length === 0) return false;
   return true;
 };
 
@@ -114,7 +114,7 @@ const booleanValue = (value) => {
 
 const numberValue = (value) => {
   if (typeof value === "undefined" || value === null || typeof value === "boolean" || typeof value === "string") return false;
-  if (typeof value === "number" && value.length === 0) return false;
+  if (typeof value === "number" && value.trim().length === 0) return false;
   return true;
 };
 
