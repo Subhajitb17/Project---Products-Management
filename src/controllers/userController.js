@@ -13,7 +13,6 @@ const { objectValue, nameRegex, keyValue, isValidTitle, mobileRegex, emailRegex,
 
 const createUser = async (req, res) => {
     try {
-        console.log(req.body)
         let { fname, lname, email, phone, password, address } = req.body  // Destructuring
 
         if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide details!" })  // 3rd V used here
