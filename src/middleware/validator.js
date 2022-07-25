@@ -54,7 +54,7 @@ const mobileRegex = (value) => {
 // 8th Validator ==>
 
 const passwordRegex = (value) => {
-  let passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,15}$/
+  let passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,50}$/
   ;
   if (passwordRegex.test(value))
     return true;
@@ -106,7 +106,7 @@ const isValidArray = (value) => {
 
 const booleanValue = (value) => {
   if (typeof value === "undefined" || typeof value === "string" || value === null || typeof value === "number" || typeof value === true) return false;
-  if (typeof value === false && value.trim().length === 0) return false;
+  if (typeof value === false && value.length === 0) return false;
   return true;
 };
 
@@ -114,7 +114,7 @@ const booleanValue = (value) => {
 
 const numberValue = (value) => {
   if (typeof value === "undefined" || value === null || typeof value === "boolean" || typeof value === "string") return false;
-  if (typeof value === "number" && value.trim().length === 0) return false;
+  if (typeof value === "number" && value.length === 0) return false
   return true;
 };
 

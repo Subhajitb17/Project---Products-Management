@@ -13,7 +13,7 @@ const { objectValue, nameRegex, keyValue, isValidTitle, mobileRegex, emailRegex,
 
 const createUser = async (req, res) => {
     try {
-
+        console.log(req.body)
         let { fname, lname, email, phone, password, address } = req.body  // Destructuring
 
         if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide details!" })  // 3rd V used here
@@ -44,6 +44,7 @@ const createUser = async (req, res) => {
 
         //upload book cover(a file) by aws
         let files = req.files
+        console.log(files)
         let uploadFileURL;
         if (files && files.length > 0) {
             uploadFileURL = await aws.uploadFile(files[0])
@@ -53,65 +54,67 @@ const createUser = async (req, res) => {
         }
         //aws-url
         let profileImage = uploadFileURL
-   
+
         if (!objectValue(password)) return res.status(400).send({ status: false, msg: "Please enter password!" })  // 2nd V used here
 
         if (!passwordRegex(password)) return res.status(400).send({ status: false, msg: "Password must be 8 to 15 characters long and must be in alphabets and numbers!" })                      // 8th V used here
 
-         const passwordHash = await bcrypt.hash(password, 10);
-         req.body.password = passwordHash
-          
-     req.body.address = JSON.parse(req.body.address)
+        const passwordHash = await bcrypt.hash(password, 10);
+        password = passwordHash
 
-      if(address) {
+        address = JSON.parse(address)
+        console.log(address)
 
-         if (!keyValue(address)) return res.status(400).send({ status: false, msg: "Please enter your address!" })   // 3rd V used here
 
-        if (!objectValue(address.shipping)) return res.status(400).send({ status: false, msg: "Please enter your shipping address!" })   // 3rd V used here
+        if (address) {
 
-        if (req.body.address.shipping.street) {
-            if (!objectValue(req.body.address.street)) return res.status(400).send({ status: false, msg: "Please enter your street!" }) // 2nd V used here
-        }
+            if (!keyValue(address)) return res.status(400).send({ status: false, msg: "Please enter your address!" })   // 3rd V used here
 
-        if (req.body.address.shipping.city) {
-            if (!objectValue(req.body.address.city)) return res.status(400).send({ status: false, msg: "Please enter your city!" })
-            // 2nd V used above
-        }
+            if (!objectValue(address.shipping)) return res.status(400).send({ status: false, msg: "Please enter your shipping address!" })   // 3rd V used here
 
-        if (req.body.address.shipping.pincode) {
-            if (!numberValue(req.body.address.pincode)) return res.status(400).send({ status: false, msg: "Please enter your pincode!" })
-            // 15th V used above
-        }
-
-        if (req.body.address.shipping.pincode) {
-            if (!pincodeRegex(req.body.address.pincode)) return res.status(400).send({ status: false, msg: "pincode is invalid!" })
-            // 9th V used above
-
-            if (!objectValue(address.billing)) return res.status(400).send({ status: false, msg: "Please enter billing your address!" })   // 3rd V used here
-
-            if (req.body.address.billing.street) {
-                if (!objectValue(req.body.address.street)) return res.status(400).send({ status: false, msg: "Please enter your street!" }) // 2nd V used here
+            if (address.shipping.street) {
+                if (!objectValue(address.shipping.street)) return res.status(400).send({ status: false, msg: "Please enter your street!" }) // 2nd V used here
             }
 
-            if (req.body.address.billing.city) {
-                if (!objectValue(req.body.address.city)) return res.status(400).send({ status: false, msg: "Please enter your city!" })
+            if (address.shipping.city) {
+                if (!objectValue(address.shipping.city)) return res.status(400).send({ status: false, msg: "Please enter your city!" })
                 // 2nd V used above
             }
 
-            if (req.body.address.billing.pincode) {
-                if (!numberValue(req.body.address.pincode)) return res.status(400).send({ status: false, msg: "Please enter your pincode!" })
+            if (address.shipping.pincode) {
+                if (!numberValue(address.shipping.pincode)) return res.status(400).send({ status: false, msg: "Please enter your pincode!" })
                 // 15th V used above
             }
 
-            if (req.body.address.billing.pincode) {
-                if (!pincodeRegex(req.body.address.pincode)) return res.status(400).send({ status: false, msg: "pincode is invalid!" })
+            if (address.shipping.pincode) {
+                if (!pincodeRegex(address.shipping.pincode)) return res.status(400).send({ status: false, msg: "pincode is invalid!" })
                 // 9th V used above
+
+                if (!objectValue(address.billing)) return res.status(400).send({ status: false, msg: "Please enter billing your address!" })   // 3rd V used here
+
+                if (address.billing.street) {
+                    if (!objectValue(address.billing.street)) return res.status(400).send({ status: false, msg: "Please enter your street!" }) // 2nd V used here
+                }
+
+                if (address.billing.city) {
+                    if (!objectValue(address.billing.city)) return res.status(400).send({ status: false, msg: "Please enter your city!" })
+                    // 2nd V used above
+                }
+
+                if (address.billing.pincode) {
+                    if (!numberValue(address.billing.pincode)) return res.status(400).send({ status: false, msg: "Please enter your pincode!" })
+                    // 15th V used above
+                }
+
+                if (address.billing.pincode) {
+                    if (!pincodeRegex(address.billing.pincode)) return res.status(400).send({ status: false, msg: "pincode is invalid!" })
+                    // 9th V used above
+                }
             }
-        }
 
         }
 
-        let users = {fname, lname, email, profileImage, phone, password, address}
+        let users = { fname, lname, email, profileImage, phone, password, address }
 
         const userCreation = await userModel.create(users)
 
@@ -137,7 +140,7 @@ const loginUser = async function (req, res) {
         if (!objectValue(password)) return res.status(400).send({ status: false, msg: "password is not present!" })   // Passsword Validation
         if (!passwordRegex(password)) return res.status(400).send({ status: false, msg: "Password must be 8 to 15 characters long and must be in alphabets and numbers!" })                      // 8th V used here
 
-        let user = await userModel.findOne({ email: email, password: password })    // DB Call
+        let user = await userModel.findOne({email: email})    // DB Call
 
         let passwordCheck = await bcrypt.compare(req.body.password, user.password)
         if (!passwordCheck) return res.status(400).send({ status: false, msg: "password is not correct!" })   // Passsword Validation
@@ -156,7 +159,7 @@ const loginUser = async function (req, res) {
             "group73-project5"              // Secret Key 
         )
 
-        return res.status(201).send({ status: true, data: user._id, token })
+        return res.status(201).send({ status: true, data: {userId: user._id, token }})
     }
     catch (err) {
         console.log("This is the error:", err.message)

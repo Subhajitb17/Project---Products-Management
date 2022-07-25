@@ -4,12 +4,12 @@ const jwt = require("jsonwebtoken");    // Importing
 
 const authentication= async function(req,res,next){
     try{
-     let token= req.headers["X-Api-key"];
-     if(!token) token= req.headers["x-api-key"]
+     let bearerToken= req.headers.authorization;
+     let token = bearerToken.split(" ")[1]
      if (!token) return res.send({ status: false, message: "token must be present" }); 
-     jwt.verify(token, "group66-project3",function (err, decoded) {
+     jwt.verify(token, "group73-project5",function (err, decoded) {
         if (err) {
-             return res.status(401).send({ status: false, message: "invalid token" })
+             return res.status(401).send({ status: false, err: err.message })
         } else {
             console.log(decoded)
             req.decodedToken=decoded
