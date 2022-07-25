@@ -62,9 +62,7 @@ const createUser = async (req, res) => {
 
         address = JSON.parse(address)
 
-        if (address) {
-
-            if (!keyValue(address)) return res.status(400).send({ status: false, msg: "Please enter your address!" })   // 3rd V used here
+            if (!objectValue(address)) return res.status(400).send({ status: false, msg: "Please enter your address!" })   // 3rd V used here
 
             if (!objectValue(address.shipping)) return res.status(400).send({ status: false, msg: "Please enter your shipping address!" })   // 3rd V used here
 
@@ -107,8 +105,6 @@ const createUser = async (req, res) => {
                     // 9th V used above
                 }
             }
-
-        }
 
         let users = { fname, lname, email, profileImage, phone, password, address }
 
