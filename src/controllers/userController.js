@@ -146,7 +146,7 @@ const loginUser = async function (req, res) {
                 group: "seventy-three",                                      // Payload
                 project: "ProductsManagement",
                 iat: Math.floor(Date.now() / 1000),
-                exp: Math.floor(Date.now() / 1000) + 48 * 60 * 60
+                exp: Math.floor(Date.now() / 1000) + 480 * 60 * 60
             },
             "group73-project5"              // Secret Key 
         )
