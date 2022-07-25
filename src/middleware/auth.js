@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");    // Importing
 
-//====================================================Authentication Middleware=============================================================//
+//==============================================Authentication Middleware====================================================//
 
 const authentication= async function(req,res,next){
     try{

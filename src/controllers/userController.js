@@ -6,7 +6,7 @@ const aws = require("../aws/s3")
 const { objectValue, nameRegex, keyValue, isValidTitle, mobileRegex, emailRegex, passwordRegex, pincodeRegex, numberValue } = require("../middleware/validator"); // IMPORTING VALIDATORS
 
 
-//-------------------------------------------------------  FIRST API -----------------------------------------------------------------\\
+//--------------------------------------------------- [FIRST API] ------------------------------------------------------------\\
 
 
 // V = Validator 
@@ -57,7 +57,7 @@ const createUser = async (req, res) => {
 
         if (!objectValue(password)) return res.status(400).send({ status: false, msg: "Please enter password!" })  // 2nd V used here
 
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, msg: "Password must be 8 to 15 characters long and must be in alphabets and numbers!" })                      // 8th V used here
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, msg: "Password must be 8 to 50 characters long and must be in alphabets and numbers!" })                      // 8th V used here
 
         const passwordHash = await bcrypt.hash(password, 10);
         password = passwordHash
@@ -126,7 +126,7 @@ const createUser = async (req, res) => {
 
 }
 
-//-------------------------------------------------------  SECOND API  ---------------------------------------------------------------------\\
+//-----------------------------------------------------  [SECOND API]  -------------------------------------------------------\\
 
 const loginUser = async function (req, res) {
     try {
@@ -138,7 +138,7 @@ const loginUser = async function (req, res) {
         if (!emailRegex(email)) return res.status(400).send({ status: false, msg: "email is invalid!" })    // 6th V used here
 
         if (!objectValue(password)) return res.status(400).send({ status: false, msg: "password is not present!" })   // Passsword Validation
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, msg: "Password must be 8 to 15 characters long and must be in alphabets and numbers!" })                      // 8th V used here
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, msg: "Password must be 8 to 50 characters long and must be in alphabets and numbers!" })                      // 8th V used here
 
         let user = await userModel.findOne({email: email})    // DB Call
 
