@@ -1,5 +1,5 @@
-const booksModel = require("../models/booksModel");
-const reviewModel = require("../models/reviewModel")
+const booksModel = require("../models/productModel");
+const reviewModel = require("../models/cartModel")
 const moment = require("moment")
 const { objectValue, keyValue, numberValue, ratingRegex, isValidObjectId, strRegex } = require("../middleware/validator");  // IMPORTING VALIDATORS
 

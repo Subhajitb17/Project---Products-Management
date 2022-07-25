@@ -1,10 +1,8 @@
 const mongoose = require("mongoose");
-const ObjectId = mongoose.Schema.Types.ObjectId
-const moment = require("moment")
 
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<==========================  SECOND SCHEMA  ========================>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\\
 
-const bookSchema = new mongoose.Schema(
+const productSchema = new mongoose.Schema(
     {
         title: {
             type: String,
@@ -13,56 +11,66 @@ const bookSchema = new mongoose.Schema(
             trim: true,
         },
 
-        excerpt: {
+        description: {
             type: String,
             required: true,
             trim: true
         },
 
-        userId: {
-            type: ObjectId,
-            ref: "user",
-            required: true,
-            trim: true
-        },
-
-        ISBN: {
-            type: String,
-            required: true,
-            unique: true,
-            trim: true
-        },
-
-        category: {
-            type: String,
-            required: true,
-            trim: true
-        },
-
-        subcategory: {
-            type: [String],
-            required: true,
-            trim: true
-        },
-
-        reviews: {
+        price: {
             type: Number,
-            default: 0,
+            required: true,
+            trim: true
         },
 
-        bookCover: {
+        currencyId: {
             type: String,
-            default: null
+            required: true,
+            default: "INR",
+            trim: true
+        },
+
+        currencyFormat: {
+            type: String,
+            required: true,
+            default: "₹",
+            trim: true
+        },
+
+        isFreeShipping: {
+            type: Boolean,
+            default: false
+        },
+
+        productImage: {
+            type: String,
+            required: true,
+            trim: true
+        },
+
+        style: {
+            type: String,
+            trim: true
+        },
+
+        availableSizes: [{
+            type: String,
+            required: true,
+            trim: true,
+            enum: ["S", "XS", "M", "X", "L", "XXL", "XL"]
+        }],
+
+        installments: {
+            type: Number,
+            trim: true
         },
 
         deletedAt: { type: Date, default: null },
 
         isDeleted: { type: Boolean, default: false },
 
-        releasedAt: { type: String, required: true },
 
     }, { timestamps: true })
 
 
-
-module.exports = mongoose.model("book", bookSchema)
+module.exports = mongoose.model("product", productSchema)

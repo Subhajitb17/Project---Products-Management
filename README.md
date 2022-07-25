@@ -277,7 +277,7 @@ Send [form-data](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
 - Make sure the user exist
 - Make sure the product(s) are valid and not deleted.
 - Get product(s) details in response body.
-- __Response format__
+- __Response format__enum[pending, completed, cancled]}
   - _**On success**_ - Return HTTP status 201. Also return the cart document. The response should be a JSON object like [this](#successful-response-structure)
   - _**On error**_ - Return a suitable error message with a valid HTTP status code. The response should be a JSON object like [this](#error-response-structure)
 
@@ -332,7 +332,7 @@ Send [form-data](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
   totalItems: {number, mandatory, comment: "Holds total number of items in the cart"},
   totalQuantity: {number, mandatory, comment: "Holds total number of quantity in the cart"},
   cancellable: {boolean, default: true},
-  status: {string, default: 'pending', enum[pending, completed, cancled]},
+  status: {string, default: 'pending', ,
   deletedAt: {Date, when the document is deleted}, 
   isDeleted: {boolean, default: false},
   createdAt: {timestamp},

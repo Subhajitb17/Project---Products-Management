@@ -1,5 +1,5 @@
-const booksModel = require("../models/booksModel");
-const reviewModel = require("../models/reviewModel")
+const booksModel = require("../models/productModel");
+const reviewModel = require("../models/cartModel")
 const jwt = require("jsonwebtoken");
 const { objectValue, keyValue, isValidISBN, isValidArray, numberValue, isValidDate, isValidObjectId, strRegex, urlRegex } = require("../middleware/validator")  // IMPORTING VALIDATORS
 

@@ -4,14 +4,27 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
     {
-        title: {
+        fname: {
             type: String,
             required: true,
             trim: true,
-            enum:["Mr", "Mrs", "Miss"]
+
         },
 
-        name: {
+        lname: {
+            type: String,
+            required: true,
+            trim: true
+        },
+
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true
+        },
+
+        profileImage: {
             type: String,
             required: true,
             trim: true
@@ -24,14 +37,7 @@ const userSchema = new mongoose.Schema(
             trim: true
         },
 
-        email: {
-            type: String,
-            required: true,
-            unique: true,
-            trim: true
-        },
-
-        password:{
+        password: {
             type: String,
             required: true,
             trim: true,
@@ -40,13 +46,21 @@ const userSchema = new mongoose.Schema(
         },
 
         address: {
-            street: { type: String },
-            city: { type: String},
-            pincode: { type: String}
+            shipping: {
+                street: { type: String, required: true, trim: true },
+                city: { type: String, required: true, trim: true },
+                pincode: { type: Number, required: true, trim: true }
+            },
+
+            billing: {
+                street: { type: String, required: true, trim: true },
+                city: { type: String, required: true, trim: true },
+                pincode: { type: Number, required: true, trim: true }
+            },
         },
 
 
-    }, {timestamps: true}
+    }, { timestamps: true }
 
 )
 
