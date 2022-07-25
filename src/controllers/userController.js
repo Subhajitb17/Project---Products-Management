@@ -61,8 +61,6 @@ const createUser = async (req, res) => {
         password = passwordHash
 
         address = JSON.parse(address)
-        console.log(address)
-
 
         if (address) {
 
