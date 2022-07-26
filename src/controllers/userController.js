@@ -200,26 +200,25 @@ const updateUserDetails = async function (req, res) {
         let findUsersbyId = await userModel.findOne({ _id: userId })    // DB Call
         if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }   // DB Validation
 
-        let { address, fname, lname, email, phone, password } = req.body;  // Destructuring
+        let { address, fname, lname, email, phone, password, profileImage } = req.body;  // Destructuring
+        
 
-        if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide something to update!" }); // 3rd V used here
+        // if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide something to update!" }); // 3rd V used here
+                    //the above validation not neeeded
 
-        let profileImage
+        // let profileImage
 
-        if(profileImage){ 
+        // if(profileImage){ 
         //upload book cover(a file) by aws
         let files = req.files
         let uploadFileURL;
         if (files && files.length > 0) {
             uploadFileURL = await aws.uploadFile(files[0])
-        }
-        else {
-            return res.status(400).send({ status: false, message: "Please add profile image" })
+            profileImage = uploadFileURL
         }
         //aws-url
-         profileImage = uploadFileURL}
 
-        if (!(fname || lname || email || phone || password || address)) return res.status(400).send({ status: false, message: "Please input valid params to update!" });
+        if (!(fname || lname || email || phone || password || address || profileImage )) return res.status(400).send({ status: false, message: "Please input valid params to update!" });
 
         if (fname) {       // Nested If used here
             if (!objectValue(fname)) return res.status(400).send({ status: false, message: "Please enter first name!" })
@@ -309,7 +308,7 @@ const updateUserDetails = async function (req, res) {
 
         const updatedUserDetails = await userModel.findOneAndUpdate(
             { _id: userId },
-            { $set: {  fname, lname, email, phone, password, address } },
+            { $set: {  fname, lname, email, phone, password, address, profileImage } },
             { new: true }
         );
         return res.status(200).send({ status: true, message: 'Success', data: updatedUserDetails });
