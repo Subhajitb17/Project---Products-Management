@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require("bcrypt")
 const aws = require("../aws/s3")
 
-const { objectValue, nameRegex, keyValue, mobileRegex, emailRegex, passwordRegex, pincodeRegex, numberValue } = require("../middleware/validator"); // IMPORTING VALIDATORS
+const { objectValue, nameRegex, keyValue, mobileRegex, emailRegex, passwordRegex, pincodeRegex, numberValue, isValidObjectId } = require("../middleware/validator"); // IMPORTING VALIDATORS
 
 
 //--------------------------------------------------- [FIRST API] ------------------------------------------------------------\\
@@ -160,4 +160,27 @@ const loginUser = async function (req, res) {
     }
 }
 
-module.exports = { createUser, loginUser }  // Destructuring & Exporting
+//-----------------------------------------------------  [THIRD API]  -------------------------------------------------------\\
+
+const getUserDeatailsById = async (req, res) => {
+
+    const userId = req.params.userId
+  
+    if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, msg: "userId is invalid!" }) }    // 1st V used here
+
+    let bearerToken= req.headers.authorization;
+    let token = bearerToken.split(" ")[1]
+    let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, msg: "not authorized!" }) }
+  
+    let findUsersbyId = await userModel.findOne({ _id: userId })    // DB Call
+    if (!findUsersbyId) { return res.status(404).send({ status: false, msg: "User details not found or does not exist!" }) }   // DB Validation
+  
+    res.status(200).send({ status: true, data: findUsersbyId})
+  
+  }
+
+
+
+
+module.exports = { createUser, loginUser, getUserDeatailsById }  // Destructuring & Exporting
