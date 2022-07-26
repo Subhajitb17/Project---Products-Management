@@ -187,7 +187,7 @@ const getUserDeatailsById = async (req, res) => {
 //----------------------------------------------------  [FOURTH API]  ------------------------------------------------------\\
 
 const updateUserDetails = async function (req, res) {
-    // try {
+    try {
         const userId = req.params.userId;
 
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "userId is invalid!" })   // 1st V used here
@@ -313,9 +313,9 @@ const updateUserDetails = async function (req, res) {
         );
         return res.status(200).send({ status: true, message: 'Success', data: updatedUserDetails });
 
-    // } catch (err) {
-    //     return res.status(500).send({ status: false, message: err.message });
-    // }
+    } catch (err) {
+        return res.status(500).send({ status: false, message: err.message });
+    }
 };
 
 module.exports = { createUser, loginUser, getUserDeatailsById, updateUserDetails }  // Destructuring & Exporting
