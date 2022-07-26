@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require("bcrypt")
 const aws = require("../aws/s3")
 
-const { objectValue, nameRegex, keyValue, isValidTitle, mobileRegex, emailRegex, passwordRegex, pincodeRegex, numberValue } = require("../middleware/validator"); // IMPORTING VALIDATORS
+const { objectValue, nameRegex, keyValue, mobileRegex, emailRegex, passwordRegex, pincodeRegex, numberValue } = require("../middleware/validator"); // IMPORTING VALIDATORS
 
 
 //--------------------------------------------------- [FIRST API] ------------------------------------------------------------\\
@@ -126,13 +126,14 @@ const loginUser = async function (req, res) {
 
         if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide email and password!" })  // 3rd V used here
 
+        let user = await userModel.findOne({email: email})    // DB Call
+        if(!user)  return res.status(400).send({ status: false, msg: "email is not present in the Database!" })
+
         if (!objectValue(email)) return res.status(400).send({ status: false, msg: "email is not present!" })    // Email Validation
         if (!emailRegex(email)) return res.status(400).send({ status: false, msg: "email is invalid!" })    // 6th V used here
 
         if (!objectValue(password)) return res.status(400).send({ status: false, msg: "password is not present!" })   // Passsword Validation
         if (!passwordRegex(password)) return res.status(400).send({ status: false, msg: "Password must be 8 to 50 characters long!" })                      // 8th V used here
-
-        let user = await userModel.findOne({email: email})    // DB Call
 
         let passwordCheck = await bcrypt.compare(req.body.password, user.password)
         if (!passwordCheck) return res.status(400).send({ status: false, msg: "password is not correct!" })   // Passsword Validation
