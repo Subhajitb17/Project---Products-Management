@@ -68,7 +68,8 @@ const createUser = async (req, res) => {
         const passwordHash = await bcrypt.hash(password, 10);
         password = passwordHash
 
-        address = JSON.parse(address)
+        try{  address = JSON.parse(address)  } 
+        catch(err) {return res.status(400).send({status: false , message: "Pincode should not start from 0!"})}  
 
         if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })   // 3rd V used here
 
@@ -263,7 +264,8 @@ const updateUserDetails = async function (req, res) {
 
 
         if (address) {                              // Nested If used here
-            address = JSON.parse(address)
+          try{  address = JSON.parse(address)  } 
+          catch(err) {return res.status(400).send({status: false , message: "Pincode should not start from 0!"})}      
             if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter address!" })
             // 2nd V used above
 
