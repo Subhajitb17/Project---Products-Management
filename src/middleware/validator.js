@@ -96,7 +96,7 @@ const isValidISBN =function (ISBN){
 const isValidArray = (value) => {
   if (Array.isArray(value)) {
       for (let i = 0; i < value.length; i++) {
-          if (value[i].trim().length === 0 || typeof (value[i]) !== "string") { return false }
+          if (value[i].trim().length === 0 || typeof (value[i]) !== "string" || value.trim().length === 0) { return false }
       }
       return true
   } else { return false }
