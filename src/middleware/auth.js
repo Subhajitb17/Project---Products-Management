@@ -11,7 +11,7 @@ const authentication= async function(req,res,next){
         if (err) {
              return res.status(401).send({ status: false, err: err.message })
         } else {
-            console.log(decoded)
+            // console.log(decoded)
             req.decodedToken=decoded
             next()
         }

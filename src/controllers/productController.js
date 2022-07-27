@@ -1,58 +1,77 @@
-const booksModel = require("../models/productModel");
-const reviewModel = require("../models/cartModel")
+const productModel = require("../models/productModel");
+const cartModel = require("../models/cartModel")
+const aws = require("../aws/s3")
 const jwt = require("jsonwebtoken");
-const { objectValue, keyValue, isValidISBN, isValidArray, numberValue, isValidDate, isValidObjectId, strRegex, urlRegex } = require("../middleware/validator")  // IMPORTING VALIDATORS
+const { objectValue, keyValue, isValidISBN, isValidArray, numberValue, isValidDate, isValidObjectId, strRegex, urlRegex, booleanValue } = require("../middleware/validator")  // IMPORTING VALIDATORS
 
-//------------------------------------------------------  THIRD API  ------------------------------------------------------------------\\
+//------------------------------------------------------  FIFTH API  --------------------------------------------------------------\\
 
 // V = Validator 
 
-const createBooks = async (req, res) => {
+const createProduct = async (req, res) => {
 
   try {
-    const { title, excerpt, userId, ISBN, category, subcategory, releasedAt, bookCover, isDeleted, reviews } = req.body  // Destructuring
+    const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments, isDeleted } = req.body  // Destructuring
 
     if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide details!" })  // 3rd V used here
 
+    //upload book cover(a file) by aws
+    let files = req.files
+    let uploadFileURL;
+    if (files && files.length > 0) {
+      uploadFileURL = await aws.uploadFile(files[0])
+    }
+    else {
+      return res.status(400).send({ status: false, message: "Please add profile image" })
+    }
+    //aws-url
+    let productImage = uploadFileURL
+
     if (!objectValue(title)) return res.status(400).send({ status: false, msg: "Please enter title!" })  // 2nd V used here
 
-    let duplicateTitle = await booksModel.findOne({ title })        // DB Call
+    let duplicateTitle = await productModel.findOne({ title })        // DB Call
     if (duplicateTitle) return res.status(400).send({ status: false, msg: "title is already in use!" })   // Duplicate Validation
 
-    if (!objectValue(excerpt)) return res.status(400).send({ status: false, msg: "Please enter excerpt!" })  // 2nd V used here
+    if (!objectValue(description)) return res.status(400).send({ status: false, msg: "Please enter description!" })  // 2nd V used here
 
-    if (!objectValue(userId)) return res.status(400).send({ status: false, msg: "Please enter userId!" })   // 2nd V used here
-    if (!isValidObjectId(userId)) return res.status(400).send({ status: false, msg: "userId is invalid!" })  // 1st V used here
+    if (price === "") {
+      if (!numberValue(price)) return res.status(400).send({ status: false, msg: "Please enter price!" })
+    }   // 2nd V used here
 
-    if (!objectValue(ISBN)) return res.status(400).send({ status: false, msg: "Please enter ISBN number!" })  // 2nd V used here
-    if (!isValidISBN(ISBN)) { return res.status(400).send({ status: false, message: 'Please provide a valid ISBN of 13 digits!' }) }
-    // 12th V used above 
+    if (currencyId) {
+      if (!objectValue(currencyId)) return res.status(400).send({ status: false, msg: "Please enter currencyId!" })
+    }  // 2nd V used here
 
-    let duplicateISBN = await booksModel.findOne({ ISBN })           // DB Call
-    if (duplicateISBN) return res.status(400).send({ status: false, msg: "ISBN is already registered!" })   // Duplicate Validation
+    if (currencyFormat) {
+      if (!objectValue(currencyFormat)) return res.status(400).send({ status: false, msg: "Please enter currencyFormat!" })
+    }  // 2nd V used here
 
-    if (!objectValue(category)) return res.status(400).send({ status: false, msg: "Please enter category!" })  // 2nd V used here
-    if (!strRegex(category)) return res.status(400).send({ status: false, msg: "Please enter category in Alphabets only!" })  // 14th V used here
+    if (isFreeShipping || isFreeShipping === "") { if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, msg: "Please enter isFreeShipping!" }) }  // 2nd V used here
 
-    if (!isValidArray(subcategory)) return res.status(400).send({ status: false, msg: "Please enter subcategory!" }) // 13th V used here 
-
-    if (!urlRegex(bookCover)) return res.status(400).send({ status: false, msg: "Please enter valid link!" }) // 17th V used here 
-
-    if (isDeleted === true) return res.status(400).send({ status: false, msg: "isDeleted must be false!" })  // Boolean Validation
-
-    if (!isValidDate(releasedAt)) return res.status(400).send({ status: false, msg: "Please enter releasedAt in the right format(YYYY-MM-DD)!" })      // 16th V used above 
-
-    if (reviews || reviews === "") {            // Nested If used here
-      if (!numberValue(reviews)) return res.status(400).send({ status: false, msg: "Please enter review!" })    // 15th V used here
+    if (availableSizes) {
+      if (!isValidArray(availableSizes)) return res.status(400).send({ status: false, msg: "Please enter availableSizes!" }) // 13th V used here 
+      let arr = availableSizes.split(",").map(x => x.trim())
+        if (!(arr.includes("S", "XS", "M", "X", "L", "XXL", "XL"))) {
+          return res.status(400).send({ status: false, message: "Available Sizes must be atlest S, XS, M, X, L, XXL, XL" })
+        }
+      
+      if (Array.isArray(arr)) { req.body.availableSizes = {$all : arr}
+    }
     }
 
-    let token = req.headers["x-api-key"]
-    let decodedToken = jwt.verify(token, "group66-project3")          // Authorization
-    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, msg: "not authorized!" }) }
+    if (!objectValue(style)) return res.status(400).send({ status: false, msg: "Please enter style!" })  // 2nd V used here
 
-    const bookCreation = await booksModel.create(req.body)
+    if (installments === "") {
+      if (!numberValue(installments)) return res.status(400).send({ status: false, msg: "Please enter installments!" })
+    }   // 2nd V used here
 
-    res.status(201).send({ status: true, message: 'Success', data: bookCreation })
+    if (isDeleted === true || isDeleted === "") return res.status(400).send({ status: false, msg: "isDeleted must be false!" })  // Boolean Validation
+
+    const products = { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSizes, style, installments, isDeleted }
+
+    const productCreation = await productModel.create(products)
+
+    res.status(201).send({ status: true, message: 'Success', data: productCreation })
 
   }
 
@@ -202,5 +221,5 @@ const deleteBooksbyId = async (req, res) => {
 }
 
 
-module.exports = { createBooks, getBooks, getBooksbyId, updateBooks, deleteBooksbyId }  // Destructuring & Exporting
+module.exports = { createProduct, getBooks, getBooksbyId, updateBooks, deleteBooksbyId }  // Destructuring & Exporting
 
