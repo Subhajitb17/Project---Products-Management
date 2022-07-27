@@ -136,18 +136,16 @@ const getProducts = async (req, res) => {
 
 //----------------------------------------------------  [SEVENTH API]  --------------------------------------------------------------\\
 
-const getBooksbyId = async (req, res) => {
+const getProductsbyId = async (req, res) => {
 
-  const bookId = req.params.bookId
+  const productId = req.params.productId
 
-  if (!isValidObjectId(bookId)) { return res.status(400).send({ status: false, msg: "bookId is invalid!" }) }    // 1st V used here
+  if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, msg: "productId is invalid!" }) }    // 1st V used here
 
-  const findBooksbyId = await booksModel.findOne({ _id: bookId, isDeleted: false })     // DB Call
-  if (!findBooksbyId) { return res.status(404).send({ status: false, msg: "Books not found or does not exist!" }) }   // DB Validation
+  const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })     // DB Call
+  if (!findProductsbyId) { return res.status(404).send({ status: false, msg: "Products not found or does not exist!" }) }   // DB Validation
 
-  const reviews = await reviewModel.find({ bookId: bookId })        // DB Call
-
-  res.status(200).send({ status: true, message: 'Books list', data: findBooksbyId, reviewsData: reviews })
+  res.status(200).send({ status: true, message: 'Product list', data: findProductsbyId })
 
 }
 
@@ -156,22 +154,22 @@ const getBooksbyId = async (req, res) => {
 
 
 
-const updateBooks = async function (req, res) {
+const updateProduct = async function (req, res) {
   try {
-    const bookId = req.params.bookId;
+    const productId = req.params.productId;
 
-    if (!isValidObjectId(bookId)) return res.status(400).send({ status: false, msg: "bookId is invalid!" })   // 1st V used here
+    if (!isValidObjectId(productId)) return res.status(400).send({ status: false, msg: "productId is invalid!" })   // 1st V used here
 
-    const findBooksbyId = await booksModel.findOne({ _id: bookId, isDeleted: false })            // DB Call
-    if (!findBooksbyId) { return res.status(404).send({ status: false, msg: "Books not found or does not exist!" }) }
+    const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })            // DB Call
+    if (!findProductsbyId) { return res.status(404).send({ status: false, msg: "Products not found or does not exist!" }) }
 
-    let token = req.headers["x-api-key"]
-    let decodedToken = jwt.verify(token, "group66-project3")            // Authorization
-    if (findBooksbyId.userId != decodedToken.userId) { return res.status(403).send({ status: false, msg: "not authorized!" }) }
+    // let token = req.headers["x-api-key"]
+    // let decodedToken = jwt.verify(token, "group66-project3")            // Authorization
+    // if (findBooksbyId.userId != decodedToken.userId) { return res.status(403).send({ status: false, msg: "not authorized!" }) }
 
-    const { title, excerpt, releasedAt, ISBN } = req.body;  // Destructuring
+    const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments } = req.body;  // Destructuring
 
-    if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide something to update!" }); // 3rd V used here
+    // if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide something to update!" }); // 3rd V used here
 
     if (!(title || excerpt || releasedAt || ISBN)) return res.status(400).send({ status: false, msg: "Please input valid params to update!" });
 
@@ -210,33 +208,29 @@ const updateBooks = async function (req, res) {
   }
 };
 
-//------------------------------------------------------  SEVENTH API  ------------------------------------------------------------------\\
+//-----------------------------------------------------  SEVENTH API  --------------------------------------------------------------\\
 
-const deleteBooksbyId = async (req, res) => {
+const deleteProductsbyId = async (req, res) => {
 
   try {
-    const bookId = req.params.bookId
+    const productId = req.params.productId
 
-    if (!isValidObjectId(bookId)) { return res.status(400).send({ status: false, msg: "bookId is invalid!" }) }   // 1st V used here
+    if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, msg: "productId is invalid!" }) }   // 1st V used here
 
-    const findBooksbyId = await booksModel.findOne({ _id: bookId, isDeleted: false })    // DB Call
-    if (!findBooksbyId) { return res.status(404).send({ status: false, msg: "Books not found or does not exist!" }) }
+    const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })    // DB Call
+    if (!findProductsbyId) { return res.status(404).send({ status: false, msg: "Products not found or does not exist!" }) }
 
-    let token = req.headers["x-api-key"]
-    let decodedToken = jwt.verify(token, "group66-project3")          // Authorization
-    if (findBooksbyId.userId != decodedToken.userId) { return res.status(403).send({ status: false, msg: "not authorized!" }) }
-
-    await booksModel.findOneAndUpdate(
-      { _id: bookId, isDeleted: false },
+    await productModel.findOneAndUpdate(
+      { _id: productId, isDeleted: false },
       { $set: { isDeleted: true, deletedAt: new Date() } },
       { new: true })
 
-    res.status(200).send({ status: true, message: "Book deleted successfully!" })
+    res.status(200).send({ status: true, message: "Product has been deleted successfully!" })
   } catch (err) {
     return res.status(500).send({ status: false, msg: err.message });
   }
 }
 
 
-module.exports = { createProduct, getProducts, getBooksbyId, updateBooks, deleteBooksbyId }  // Destructuring & Exporting
+module.exports = { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId }  // Destructuring & Exporting
 
