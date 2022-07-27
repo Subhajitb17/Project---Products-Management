@@ -1,7 +1,7 @@
 const express = require("express")
 const route = express.Router();
 const {createUser, loginUser, getUserDeatailsById, updateUserDetails} = require("../controllers/userController");
-// const productController = require("../controllers/productController");
+const {createProduct} = require("../controllers/productController");
 // const cartController = require("../controllers/cartController");
 // const orderController = require("../controllers/orderController");
 const {authentication} = require("../middleware/auth")
@@ -15,6 +15,9 @@ route.post("/login" , loginUser)
 route.get("/user/:userId/profile" , authentication, getUserDeatailsById)
 
 route.put("/user/:userId/profile" , authentication, updateUserDetails)
+
+
+route.post("/products" , createProduct)
 
 
 
