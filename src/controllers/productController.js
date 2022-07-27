@@ -1,6 +1,6 @@
 const productModel = require("../models/productModel");
 const aws = require("../aws/s3")
-const { objectValue, keyValue, isValidISBN, isValidArray, numberValue, isValidDate, isValidObjectId, strRegex, urlRegex, booleanValue } = require("../middleware/validator")  // IMPORTING VALIDATORS
+const { objectValue, keyValue, numberValue, isValidObjectId, strRegex, booleanValue } = require("../middleware/validator")  // IMPORTING VALIDATORS
 
 //------------------------------------------------------  [FIFTH API]  --------------------------------------------------------------\\
 
@@ -20,12 +20,13 @@ const createProduct = async (req, res) => {
       uploadFileURL = await aws.uploadFile(files[0])
     }
     else {
-      return res.status(400).send({ status: false, message: "Please add profile image" })
+      return res.status(400).send({ status: false, message: "Please add product image" })
     }
     //aws-url
     let productImage = uploadFileURL
 
     if (!objectValue(title)) return res.status(400).send({ status: false, msg: "Please enter title!" })  // 2nd V used here
+    if (!strRegex(title)) return res.status(400).send({ status: false, msg: "Please enter title in alphabets only!" })  // 2nd V used here
 
     let duplicateTitle = await productModel.findOne({ title })        // DB Call
     if (duplicateTitle) return res.status(400).send({ status: false, msg: "title is already in use!" })   // Duplicate Validation
@@ -103,6 +104,7 @@ const getProducts = async (req, res) => {
 
     if (name) {                // Nested If Else used here
       if (!objectValue(name)) { return res.status(400).send({ status: false, msg: "Product name is invalid!" }) }  // 2nd V used here
+      if (!strRegex(name)) { return res.status(400).send({ status: false, msg: "Please enter Product name is alphabets only!" }) }  // 2nd V used here
       else { filter.title = name };
     }
 
@@ -136,7 +138,7 @@ const getProductsbyId = async (req, res) => {
   const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })     // DB Call
   if (!findProductsbyId) { return res.status(404).send({ status: false, msg: "Products not found or does not exist!" }) }   // DB Validation
 
-  res.status(200).send({ status: true, message: 'Product list', data: findProductsbyId })
+  res.status(200).send({ status: true, message: 'Product Details', data: findProductsbyId })
 
 }
 
@@ -156,9 +158,9 @@ const updateProduct = async function (req, res) {
 
 
 
-    const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments } = req.body;  // Destructuring
+    const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments } = req.query;  // Destructuring
 
-    if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide something to update!" }); // 3rd V used here
+    if (!keyValue(req.query)) return res.status(400).send({ status: false, msg: "Please provide something to update!" }); // 3rd V used here
 
     //upload book cover(a file) by aws
     let files = req.files
@@ -174,9 +176,10 @@ const updateProduct = async function (req, res) {
 
     if (title || title === "") {          // Nested If used here
       if (!objectValue(title)) return res.status(400).send({ status: false, msg: "Please enter title!" })
+      if (!strRegex(title)) return res.status(400).send({ status: false, msg: "Please enter title in Alphabets only!" })
     }        // 2nd V used above
 
-    let duplicateTitle = await booksModel.findOne({ title })
+    let duplicateTitle = await productModel.findOne({ title })
     if (duplicateTitle) return res.status(400).send({ status: false, msg: "Product name is already in use!" })    // Duplicate Validation
 
     if (description) {       // Nested If used here
@@ -215,7 +218,7 @@ const updateProduct = async function (req, res) {
       if (!numberValue(installments)) return res.status(400).send({ status: false, message: "Please enter installments correctly!" })
     }     // 12th V used above
 
-    const updatedProducts = await booksModel.findOneAndUpdate(
+    const updatedProducts = await productModel.findOneAndUpdate(
       { _id: productId },
       { $set: { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSize: availableSizes, style, installments } },
       { new: true }
