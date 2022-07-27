@@ -111,7 +111,7 @@ const getProducts = async (req, res) => {
     if (priceGreaterThan || priceLessThan ) {                // Nested If Else used here
       if (!objectValue(priceGreaterThan)) { return res.status(400).send({ status: false, msg: "priceGreaterThan is invalid!" }) }  // 2nd V used here
       if (!objectValue(priceLessThan)) { return res.status(400).send({ status: false, msg: "priceLessThan is invalid!" }) }  // 2nd V used here
-      else { filter.price = {price:[{$gt:priceGreaterThan, $lt:priceLessThan}]}  
+      else { filter.price = {$in:[{$gt:priceGreaterThan, $lt:priceLessThan}]}  
       // db.inventory.find( { $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] } )
       // { field: { $in: [<value1>, <value2>, ... <valueN> ] } }
     };
