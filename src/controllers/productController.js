@@ -34,9 +34,12 @@ const createProduct = async (req, res) => {
 
     if (!objectValue(description)) return res.status(400).send({ status: false, msg: "Please enter description!" })  // 2nd V used here
 
-    if (price === "") {
-      if (!numberValue(price)) return res.status(400).send({ status: false, msg: "Please enter price!" })
-    }   // 2nd V used here
+
+    if (!price) return res.status(400).send({ status: false, msg: "Please enter price!" })
+    // 2nd V used here
+    if (price) {
+     if (!numberValue(price)) return res.status(400).send({ status: false, msg: "Please enter price!" })
+    }
 
     if (currencyId) {
       if (!objectValue(currencyId)) return res.status(400).send({ status: false, msg: "Please enter currencyId!" })
@@ -48,21 +51,24 @@ const createProduct = async (req, res) => {
 
     if (isFreeShipping || isFreeShipping === "") { if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, msg: "Please enter isFreeShipping!" }) }  // 2nd V used here
 
-   // Validation For availableSizes
-   if (availableSizes) {
-    var availableSize = availableSizes.toUpperCase().split(",")
-    console.log(availableSize);  // Creating an array
 
-    //  Enum validation on availableSizes
-    for (let i = 0; i < availableSize.length; i++) {
+    // Validation For availableSizes
+    let availableSize
+    if (availableSizes) {
+      availableSize = availableSizes.toUpperCase().split(",")
+      console.log(availableSize);  // Creating an array
+
+      //  Enum validation on availableSizes
+      for (let i = 0; i < availableSize.length; i++) {
         if (!(["S", "XS", "M", "X", "L", "XXL", "XL"]).includes(availableSize[i])) {
-            return res.status(400).send({ status: false, message: `Sizes should be ${["S", "XS", "M", "X", "L", "XXL", "XL"]}` })
+          return res.status(400).send({ status: false, message: `Sizes should be ${["S", "XS", "M", "X", "L", "XXL", "XL"]}` })
         }
+      }
     }
-}
 
-
-    if (!objectValue(style)) return res.status(400).send({ status: false, msg: "Please enter style!" })  // 2nd V used here
+    if (style) {
+      if (!objectValue(style)) return res.status(400).send({ status: false, msg: "Please enter style!" })
+    }  // 2nd V used here
 
     if (installments === "") {
       if (!numberValue(installments)) return res.status(400).send({ status: false, msg: "Please enter installments!" })
@@ -70,49 +76,57 @@ const createProduct = async (req, res) => {
 
     if (isDeleted === true || isDeleted === "") return res.status(400).send({ status: false, msg: "isDeleted must be false!" })  // Boolean Validation
 
-    const products = { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSizes: availableSize , style, installments, isDeleted }
+    const products = { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSizes: availableSize, style, installments, isDeleted }
 
     const productCreation = await productModel.create(products)
 
     res.status(201).send({ status: true, message: 'Success', data: productCreation })
 
+  } catch (error) {
+    res.status(500).send({ status: false, msg: error.message });
   }
+};
 
-  catch (error) {
-    res.status(500).send({ status: false, msg: error.message })
-  }
 
-}
 
-//------------------------------------------------------  FOURTH API  ------------------------------------------------------------------\\
 
-const getBooks = async (req, res) => {
+//-----------------------------------------------------  [SIXTH API]  ---------------------------------------------------------------\\
+
+const getProducts = async (req, res) => {
   try {
-    const userQuery = req.query;
+    const productQuery = req.query;
     const filter = { isDeleted: false };          // Object Manupulation
-    const { userId, category, subcategory } = userQuery;       // Destructuring          
+    const { size, name, priceGreaterThan, priceLessThan } = productQuery;       // Destructuring          
 
-    if (!keyValue(userQuery)) return res.status(400).send({ status: false, msg: "Please provide atleast one param!" }); // 3rd V used here
-
-    if (userId) {                // Nested If Else used here
-      if (!objectValue(userId)) { return res.status(400).send({ status: false, msg: "userId is invalid!" }) }  // 2nd V used here
-      if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, msg: "userId is invalid!" }) } // 1st V used here
-      else { filter.userId = userId };
-    }
-    if (objectValue(category)) { filter.category = category.trim() };        // 2nd V used here
-    if (objectValue(subcategory)) {               // 2nd V used here
-      const subcategoryArray = subcategory.trim().split(",").map((s) => s.trim())
-      filter.subcategory = { $all: subcategoryArray } // The $all operator selects the documents where the value of a field is an array that contains all the specified elements.
+   if (objectValue(size)) {               // 2nd V used here
+      const sizeArray = size.trim().split(",").map((s) => s.trim())
+      filter.availableSizes = { $all: sizeArray } // The $all operator selects the documents where the value of a field is an array that contains all the specified elements.
     };
 
-    const bookList = await booksModel.find(filter).select({ title: 1, excerpt: 1, userId: 1, category: 1, review: 1, releasedAt: 1 });
+    if (name) {                // Nested If Else used here
+      if (!objectValue(name)) { return res.status(400).send({ status: false, msg: "Product name is invalid!" }) }  // 2nd V used here
+      else { filter.title = name };
+    }
 
-    if (bookList.length === 0) return res.status(400).send({ status: false, msg: "no book found!" })  // DB Validation
+    if (priceGreaterThan || priceLessThan ) {                // Nested If Else used here
+      if (!objectValue(priceGreaterThan)) { return res.status(400).send({ status: false, msg: "priceGreaterThan is invalid!" }) }  // 2nd V used here
+      if (!objectValue(priceLessThan)) { return res.status(400).send({ status: false, msg: "priceLessThan is invalid!" }) }  // 2nd V used here
+      else { filter.price = {price:[{$gt:priceGreaterThan, $lt:priceLessThan}]}  
+      // db.inventory.find( { $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] } )
+      // { field: { $in: [<value1>, <value2>, ... <valueN> ] } }
+    };
+    } 
 
-    const sortedBooks = bookList.sort((a, b) => a.title.localeCompare(b.title))  // Sorting in Alphabetical Order
-    // The localeCompare() method returns a number indicating whether a reference string comes before, or after, or is the same as the given string in sort order.
+    // if (priceLessThan) {                // Nested If Else used here
+    //   if (!objectValue(priceLessThan)) { return res.status(400).send({ status: false, msg: "Product name is invalid!" }) }  // 2nd V used here
+    //   else { filter.price = {$lt:priceLessThan} };
+    // }  
+    
+    const productList = await productModel.find(filter).sort({price: 1})
 
-    res.status(200).send({ status: true, message: 'Books list', data: sortedBooks })
+    if (productList.length === 0) return res.status(400).send({ status: false, msg: "no product found!" })  // DB Validation
+
+    res.status(200).send({ status: true, message: 'Product list', data: productList })
 
   }
   catch (error) {
@@ -120,7 +134,7 @@ const getBooks = async (req, res) => {
   }
 };
 
-//------------------------------------------------------  FIFTH API  ------------------------------------------------------------------\\
+//----------------------------------------------------  [SEVENTH API]  --------------------------------------------------------------\\
 
 const getBooksbyId = async (req, res) => {
 
@@ -138,7 +152,7 @@ const getBooksbyId = async (req, res) => {
 }
 
 
-//------------------------------------------------------  SIXTH API  ------------------------------------------------------------------\\
+//----------------------------------------------------  [EIGHTH API] ---------------------------------------------------------------\\
 
 
 
@@ -224,5 +238,5 @@ const deleteBooksbyId = async (req, res) => {
 }
 
 
-module.exports = { createProduct, getBooks, getBooksbyId, updateBooks, deleteBooksbyId }  // Destructuring & Exporting
+module.exports = { createProduct, getProducts, getBooksbyId, updateBooks, deleteBooksbyId }  // Destructuring & Exporting
 

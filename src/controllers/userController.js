@@ -3,7 +3,15 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require("bcrypt")
 const aws = require("../aws/s3")
 
-const { objectValue, nameRegex, keyValue, mobileRegex, emailRegex, passwordRegex, pincodeRegex, numberValue, isValidObjectId } = require("../middleware/validator"); // IMPORTING VALIDATORS
+const { objectValue,
+    nameRegex,
+    keyValue,
+    mobileRegex,
+    emailRegex,
+    passwordRegex,
+    pincodeRegex,
+    numberValue,
+    isValidObjectId } = require("../middleware/validator"); // IMPORTING VALIDATORS
 
 
 //--------------------------------------------------- [FIRST API] ------------------------------------------------------------\\
@@ -202,10 +210,10 @@ const updateUserDetails = async function (req, res) {
         if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }   // DB Validation
 
         let { address, fname, lname, email, phone, password, profileImage } = req.body;  // Destructuring
-        
+
 
         // if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide something to update!" }); // 3rd V used here
-                    //the above validation not neeeded
+        //the above validation not neeeded
 
         // let profileImage
 
@@ -219,7 +227,7 @@ const updateUserDetails = async function (req, res) {
         }
         //aws-url
 
-        if (!(fname || lname || email || phone || password || address || profileImage )) return res.status(400).send({ status: false, message: "Please input valid params to update!" });
+        if (!(fname || lname || email || phone || password || address || profileImage)) return res.status(400).send({ status: false, message: "Please input valid params to update!" });
 
         if (fname) {       // Nested If used here
             if (!objectValue(fname)) return res.status(400).send({ status: false, message: "Please enter first name!" })
@@ -253,7 +261,7 @@ const updateUserDetails = async function (req, res) {
             password = passwordHash
         }
 
-       
+
 
         if (address) {                              // Nested If used here
           try{  address = JSON.parse(address)  } 
@@ -310,7 +318,7 @@ const updateUserDetails = async function (req, res) {
 
         const updatedUserDetails = await userModel.findOneAndUpdate(
             { _id: userId },
-            { $set: {  fname, lname, email, phone, password, address, profileImage } },
+            { $set: { fname, lname, email, phone, password, address, profileImage } },
             { new: true }
         );
         return res.status(200).send({ status: true, message: 'Success', data: updatedUserDetails });
