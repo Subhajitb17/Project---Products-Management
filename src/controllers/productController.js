@@ -1,7 +1,5 @@
 const productModel = require("../models/productModel");
-const cartModel = require("../models/cartModel")
 const aws = require("../aws/s3")
-const jwt = require("jsonwebtoken");
 const { objectValue, keyValue, isValidISBN, isValidArray, numberValue, isValidDate, isValidObjectId, strRegex, urlRegex, booleanValue } = require("../middleware/validator")  // IMPORTING VALIDATORS
 
 //------------------------------------------------------  [FIFTH API]  --------------------------------------------------------------\\
@@ -38,7 +36,7 @@ const createProduct = async (req, res) => {
     if (!price) return res.status(400).send({ status: false, msg: "Please enter price!" })
     // 2nd V used here
     if (price) {
-     if (!numberValue(price)) return res.status(400).send({ status: false, msg: "Please enter price!" })
+      if (!numberValue(price)) return res.status(400).send({ status: false, msg: "Please enter price!" })
     }
 
     if (currencyId) {
@@ -98,7 +96,7 @@ const getProducts = async (req, res) => {
     const filter = { isDeleted: false };          // Object Manupulation
     const { size, name, priceGreaterThan, priceLessThan } = productQuery;       // Destructuring          
 
-   if (objectValue(size)) {               // 2nd V used here
+    if (objectValue(size)) {               // 2nd V used here
       const sizeArray = size.trim().split(",").map((s) => s.trim())
       filter.availableSizes = { $all: sizeArray } // The $all operator selects the documents where the value of a field is an array that contains all the specified elements.
     };
@@ -108,21 +106,14 @@ const getProducts = async (req, res) => {
       else { filter.title = name };
     }
 
-    if (priceGreaterThan || priceLessThan ) {                // Nested If Else used here
-      if (!objectValue(priceGreaterThan)) { return res.status(400).send({ status: false, msg: "priceGreaterThan is invalid!" }) }  // 2nd V used here
-      if (!objectValue(priceLessThan)) { return res.status(400).send({ status: false, msg: "priceLessThan is invalid!" }) }  // 2nd V used here
-      else { filter.price = {$in:[{$gt:priceGreaterThan, $lt:priceLessThan}]}  
-      // db.inventory.find( { $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] } )
-      // { field: { $in: [<value1>, <value2>, ... <valueN> ] } }
-    };
-    } 
+    if (priceGreaterThan) filter.price = { $gt: priceGreaterThan }
+    if (priceLessThan) filter.price = { $lt: priceLessThan }
 
-    // if (priceLessThan) {                // Nested If Else used here
-    //   if (!objectValue(priceLessThan)) { return res.status(400).send({ status: false, msg: "Product name is invalid!" }) }  // 2nd V used here
-    //   else { filter.price = {$lt:priceLessThan} };
-    // }  
-    
-    const productList = await productModel.find(filter).sort({price: 1})
+    if (priceGreaterThan && priceLessThan) {
+      filter.price = { $gte: priceGreaterThan, $lte: priceLessThan }
+    }
+
+    const productList = await productModel.find(filter).sort({ price: 1 })
 
     if (productList.length === 0) return res.status(400).send({ status: false, msg: "no product found!" })  // DB Validation
 
@@ -163,45 +154,73 @@ const updateProduct = async function (req, res) {
     const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })            // DB Call
     if (!findProductsbyId) { return res.status(404).send({ status: false, msg: "Products not found or does not exist!" }) }
 
-    // let token = req.headers["x-api-key"]
-    // let decodedToken = jwt.verify(token, "group66-project3")            // Authorization
-    // if (findBooksbyId.userId != decodedToken.userId) { return res.status(403).send({ status: false, msg: "not authorized!" }) }
+
 
     const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments } = req.body;  // Destructuring
 
-    // if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide something to update!" }); // 3rd V used here
+    if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide something to update!" }); // 3rd V used here
 
-    if (!(title || excerpt || releasedAt || ISBN)) return res.status(400).send({ status: false, msg: "Please input valid params to update!" });
+    //upload book cover(a file) by aws
+    let files = req.files
+    let uploadFileURL;
+    if (files && files.length > 0) {
+      uploadFileURL = await aws.uploadFile(files[0])
+    }
+
+    //aws-url
+    let productImage = uploadFileURL
+
+    if (!(title || description || price || currencyId || currencyFormat || isFreeShipping || availableSizes || style || installments)) return res.status(400).send({ status: false, msg: "Please input valid params to update!" });
 
     if (title || title === "") {          // Nested If used here
       if (!objectValue(title)) return res.status(400).send({ status: false, msg: "Please enter title!" })
     }        // 2nd V used above
 
     let duplicateTitle = await booksModel.findOne({ title })
-    if (duplicateTitle) return res.status(400).send({ status: false, msg: "title is already in use!" })    // Duplicate Validation
+    if (duplicateTitle) return res.status(400).send({ status: false, msg: "Product name is already in use!" })    // Duplicate Validation
 
-    if (excerpt || excerpt === "") {       // Nested If used here
-      if (!objectValue(excerpt)) return res.status(400).send({ status: false, msg: "Please enter excerpt!" })
+    if (description) {       // Nested If used here
+      if (!objectValue(description)) return res.status(400).send({ status: false, msg: "Please enter description!" })
     }        // 2nd V used above
 
-    if (releasedAt || releasedAt === "") {    // Nested If used here
-      if (!objectValue(releasedAt)) return res.status(400).send({ status: false, msg: "Please enter releasedAt!" }) // 2nd V used here
-      if (!isValidDate(releasedAt)) return res.status(400).send({ status: false, msg: "Please enter releasedAt in the right format(YYYY-MM-DD)!" })      // 16th V used above 
+    if (price) {    // Nested If used here
+      if (!numberValue(price)) return res.status(400).send({ status: false, msg: "Please enter price correctly!" }) // 2nd V used here
     }
 
-    if (ISBN || ISBN === "") {
-      if (!isValidISBN(ISBN)) return res.status(400).send({ status: false, message: 'Please provide a valid ISBN of 13 digits!' })
+    if (currencyId) {
+      if (!objectValue(currencyId)) return res.status(400).send({ status: false, message: 'Please provide currencyId!' })
+    }     // 12th V used above
+    if (isFreeShipping) {
+      if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, message: "Please enter isFreeShipping correctly!" })
     }     // 12th V used above
 
-    let duplicateISBN = await booksModel.findOne({ ISBN })    // DB Call
-    if (duplicateISBN) return res.status(400).send({ status: false, msg: "ISBN is already registered!" })  // Duplicate Validation
+    let availableSize
+    if (availableSizes) {
+      availableSize = availableSizes.toUpperCase().split(",")
+      console.log(availableSize);  // Creating an array
 
-    const updatedBooks = await booksModel.findOneAndUpdate(
-      { _id: bookId },
-      { $set: { title, excerpt, releasedAt, ISBN } },
+      //  Enum validation on availableSizes
+      for (let i = 0; i < availableSize.length; i++) {
+        if (!(["S", "XS", "M", "X", "L", "XXL", "XL"]).includes(availableSize[i])) {
+          return res.status(400).send({ status: false, message: `Sizes should be ${["S", "XS", "M", "X", "L", "XXL", "XL"]}` })
+        }
+      }
+    }
+
+    if (style) {
+      if (!objectValue(style)) return res.status(400).send({ status: false, message: "Please provide style correctly!" })
+    }     // 12th V used above
+
+    if (installments) {
+      if (!numberValue(installments)) return res.status(400).send({ status: false, message: "Please enter installments correctly!" })
+    }     // 12th V used above
+
+    const updatedProducts = await booksModel.findOneAndUpdate(
+      { _id: productId },
+      { $set: { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSize: availableSizes, style, installments } },
       { new: true }
     );
-    return res.status(200).send({ status: true, message: 'Success', data: updatedBooks });
+    return res.status(200).send({ status: true, message: 'Success', data: updatedProducts });
 
   } catch (err) {
     return res.status(500).send({ status: false, msg: err.message });
