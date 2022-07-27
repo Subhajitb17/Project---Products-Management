@@ -4,7 +4,7 @@ const aws = require("../aws/s3")
 const jwt = require("jsonwebtoken");
 const { objectValue, keyValue, isValidISBN, isValidArray, numberValue, isValidDate, isValidObjectId, strRegex, urlRegex, booleanValue } = require("../middleware/validator")  // IMPORTING VALIDATORS
 
-//------------------------------------------------------  FIFTH API  --------------------------------------------------------------\\
+//------------------------------------------------------  [FIFTH API]  --------------------------------------------------------------\\
 
 // V = Validator 
 
@@ -208,7 +208,7 @@ const updateProduct = async function (req, res) {
   }
 };
 
-//-----------------------------------------------------  SEVENTH API  --------------------------------------------------------------\\
+//----------------------------------------------------- [NINTH API]  --------------------------------------------------------------\\
 
 const deleteProductsbyId = async (req, res) => {
 
