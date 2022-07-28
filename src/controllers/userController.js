@@ -25,13 +25,13 @@ const createUser = async (req, res) => {
 
         if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide details!" })  // 3rd V used here
 
-        if (!objectValue(fname)) return res.status(400).send({ status: false, message: "Please enter title!" }) // 2nd V used here
+        if (!objectValue(fname)) return res.status(400).send({ status: false, message: "Please enter First name!" }) // 2nd V used here
+        if (!nameRegex(fname)) return res.status(400).send({ status: false, message: "First name is invalid!" })  // 4th V used here
 
         // if (!isValidTitle(fname)) return res.status(400).send({ status: false, message: "Title must be Mr/Mrs/Miss" })  // 5th V used here
 
-        if (!objectValue(lname)) return res.status(400).send({ status: false, message: "Please enter name!" })  // 2nd V used here
-
-        if (!nameRegex(lname)) return res.status(400).send({ status: false, message: "name is invalid!" })  // 4th V used here
+        if (!objectValue(lname)) return res.status(400).send({ status: false, message: "Please enter Last name!" })  // 2nd V used here
+        if (!nameRegex(lname)) return res.status(400).send({ status: false, message: "Last name is invalid!" })  // 4th V used here
 
         if (!objectValue(phone)) return res.status(400).send({ status: false, message: "Please enter phone number!" })  // 2nd V used here
 
