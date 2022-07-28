@@ -6,38 +6,41 @@ const aws = require("../aws/s3")
 const { objectValue, nameRegex, keyValue, mobileRegex, emailRegex, passwordRegex, pincodeRegex, numberValue, isValidObjectId } = require("../middleware/validator"); // IMPORTING VALIDATORS
 
 
-//--------------------------------------------------- [FIRST API] ------------------------------------------------------------\\
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////       CREATE    USER     API      //////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const createUser = async (req, res) => {
     try {
         let { fname, lname, email, phone, password, address } = req.body  // Destructuring
 
-        // Request body validation- empty or not
+        // Request body validation => empty or not
         if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide details!" })
 
-        //first name validation- first name is mandatory
+        //first name validation => first name is mandatory
         if (!objectValue(fname)) return res.status(400).send({ status: false, message: "Please enter first name!" })
         //first name must be in alphabate
         if (!nameRegex(fname)) return res.status(400).send({ status: false, message: "first name is invalid!" })
 
-        //last name validation- last name is mandatory
+        //last name validation => last name is mandatory
         if (!objectValue(lname)) return res.status(400).send({ status: false, message: "Please enter last name!" })
         //last name must  be in alphabate
         if (!nameRegex(lname)) return res.status(400).send({ status: false, message: "last name is invalid!" })
 
-        //phone number validation- phone is number mandatory
+        //phone number validation => phone is number mandatory
         if (!objectValue(phone)) return res.status(400).send({ status: false, message: "Please enter phone number!" })
-        //phone no must be a valid indian phone number
+        //phone number must be a valid indian phone number
         if (!mobileRegex(phone)) return res.status(400).send({ status: false, message: "phone number is invalid!" })
-        //phone must must be unique-- checking from DB that phone no already registered or not
+        //phone must must be unique => checking from DB that phone number already registered or not
         let duplicatePhone = await userModel.findOne({ phone })
         if (duplicatePhone) return res.status(400).send({ status: false, message: "phone number is already registered!" })
 
-        //Email validation- Email is mandatory
+        //Email validation => Email is mandatory
         if (!objectValue(email)) return res.status(400).send({ status: false, message: "Please enter email!" })
         //Email must be a valid email address 
         if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })
-        // Email must be unique-- checking from DB that email already registered or not
+        // Email must be unique => checking from DB that email already registered or not
         let duplicateEmail = await userModel.findOne({ email })
         if (duplicateEmail) return res.status(400).send({ status: false, message: "email is already registered!" })
 
@@ -53,7 +56,7 @@ const createUser = async (req, res) => {
         //aws-url of S3
         let profileImage = uploadFileURL
 
-        //Password validation- password is mandatory
+        //Password validation => password is mandatory
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "Please enter password!" })
         //Password must be 8-50 characters 
         if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters!" })
@@ -61,11 +64,11 @@ const createUser = async (req, res) => {
         const passwordHash = await bcrypt.hash(password, 10);
         password = passwordHash
 
-        // address pincode validation- should not start with "0"
+        // address pincode validation => should not start with "0"
         try { address = JSON.parse(address) }
         catch (err) { return res.status(400).send({ status: false, message: "Pincode should not start with 0!" }) }
 
-        //Address validation- address is mandatory
+        //Address validation => address is mandatory
         if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
         //shipping address is mandatory
         if (!objectValue(address.shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })
