@@ -42,11 +42,15 @@ const createProduct = async (req, res) => {
 
     if (currencyId) {
       if (!objectValue(currencyId)) return res.status(400).send({ status: false, msg: "Please enter currencyId!" })
-    }  // 2nd V used here
+      // 2nd V used here
+      if (currencyId !== "INR") return res.status(400).send({ status: false, msg: "Please enter currencyId in correct format!" })
+    }
 
     if (currencyFormat) {
       if (!objectValue(currencyFormat)) return res.status(400).send({ status: false, msg: "Please enter currencyFormat!" })
-    }  // 2nd V used here
+      // 2nd V used here
+      if (currencyFormat !== "₹") return res.status(400).send({ status: false, msg: "Please enter currencyFormat in correct format!" })
+    }
 
     if (isFreeShipping || isFreeShipping === "") { if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, msg: "Please enter isFreeShipping!" }) }  // 2nd V used here
 
@@ -191,8 +195,17 @@ const updateProduct = async function (req, res) {
     }
 
     if (currencyId) {
-      if (!objectValue(currencyId)) return res.status(400).send({ status: false, message: 'Please provide currencyId!' })
-    }     // 12th V used above
+      if (!objectValue(currencyId)) return res.status(400).send({ status: false, msg: "Please enter currencyId!" })
+      // 2nd V used here
+      if (currencyId !== "INR") return res.status(400).send({ status: false, msg: "Please enter currencyId in correct format!" })
+    }
+
+    if (currencyFormat) {
+      if (!objectValue(currencyFormat)) return res.status(400).send({ status: false, msg: "Please enter currencyFormat!" })
+      // 2nd V used here
+      if (currencyFormat !== "₹") return res.status(400).send({ status: false, msg: "Please enter currencyFormat in correct format!" })
+    }
+
     if (isFreeShipping) {
       if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, message: "Please enter isFreeShipping correctly!" })
     }     // 12th V used above
