@@ -59,17 +59,19 @@ const createUser = async (req, res) => {
         //Password validation => password is mandatory
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "Please enter password!" })
         //Password must be 8-50 characters 
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters and only alphabates and number only!" })
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters and in alphabets and numbers only!" })
         //creating hash password by using bcrypt
         const passwordHash = await bcrypt.hash(password, 10);
         password = passwordHash
 
         // address pincode validation => should not start with "0"
-        try { address = JSON.parse(address) }
-        catch (err) { return res.status(400).send({ status: false, message: "Pincode should not start with 0!" }) }
-
         //Address validation => address is mandatory
         if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
+
+        try {
+            address = JSON.parse(address)
+        } catch (err) { return res.status(400).send({ status: false, message: "Pincode should not start with 0!" }) }
+
         //shipping address is mandatory
         if (!objectValue(address.shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })
         // shipping address street is mandatory
