@@ -28,14 +28,6 @@ const createUser = async (req, res) => {
         //last name must  be in alphabate
         if (!nameRegex(lname)) return res.status(400).send({ status: false, message: "last name is invalid!" })
 
-        //phone number validation => phone is number mandatory
-        if (!objectValue(phone)) return res.status(400).send({ status: false, message: "Please enter phone number!" })
-        //phone number must be a valid indian phone number
-        if (!mobileRegex(phone)) return res.status(400).send({ status: false, message: "phone number is invalid!" })
-        //phone must must be unique => checking from DB that phone number already registered or not
-        let duplicatePhone = await userModel.findOne({ phone })
-        if (duplicatePhone) return res.status(400).send({ status: false, message: "phone number is already registered!" })
-
         //Email validation => Email is mandatory
         if (!objectValue(email)) return res.status(400).send({ status: false, message: "Please enter email!" })
         //Email must be a valid email address 
@@ -56,10 +48,18 @@ const createUser = async (req, res) => {
         //aws-url of S3
         let profileImage = uploadFileURL
 
+        //phone number validation => phone is number mandatory
+        if (!objectValue(phone)) return res.status(400).send({ status: false, message: "Please enter phone number!" })
+        //phone number must be a valid indian phone number
+        if (!mobileRegex(phone)) return res.status(400).send({ status: false, message: "phone number is invalid!" })
+        //phone must must be unique => checking from DB that phone number already registered or not
+        let duplicatePhone = await userModel.findOne({ phone })
+        if (duplicatePhone) return res.status(400).send({ status: false, message: "phone number is already registered!" })
+
         //Password validation => password is mandatory
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "Please enter password!" })
         //Password must be 8-50 characters 
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters!" })
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters and only alphabates and number only!" })
         //creating hash password by using bcrypt
         const passwordHash = await bcrypt.hash(password, 10);
         password = passwordHash
@@ -121,33 +121,46 @@ const createUser = async (req, res) => {
 
 }
 
-//-----------------------------------------------------  [SECOND API]  -------------------------------------------------------\\
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////       LOGIN    USER     API       //////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const loginUser = async function (req, res) {
     try {
         let { email, password } = req.body  // Destructuring
 
-        if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide email and password!" })  // 3rd V used here
+        // Request body validation => empty or not
+        if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide email and password!" })
 
-        let user = await userModel.findOne({ email: email })    // DB Call
+        //Email is mandatory for login
+        if (!objectValue(email)) return res.status(400).send({ status: false, message: "email is not present!" })
+        //Email must be a valid email address
+        if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })
+
+        //Password validation => Password is mandatory for login
+        if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })
+        //Password must be 8-50 characters 
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters longa and only alphabates and number only!" })                      // 8th V used here
+        
+        //Email Validation => checking from DB that email present in DB or not
+        let user = await userModel.findOne({ email: email })
         if (!user) return res.status(400).send({ status: false, message: "email is not present in the Database!" })
 
-        if (!objectValue(email)) return res.status(400).send({ status: false, message: "email is not present!" })    // Email Validation
-        if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })    // 6th V used here
-
-        if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })   // Passsword Validation
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters long!" })                      // 8th V used here
-
+        //password check by comparing request body password and the password from bcrypt hash password
         let passwordCheck = await bcrypt.compare(req.body.password, user.password)
-        if (!passwordCheck) return res.status(400).send({ status: false, message: "password is not correct!" })   // Passsword Validation
-
+        //request body password and bcrypt hash password not match
+        if (!passwordCheck) return res.status(400).send({ status: false, message: "password is not correct!" })
+        
+        //Bad Request => Email or password is invalid 
         if (!user) { return res.status(404).send({ status: false, message: "email or the password is invalid!" }) }
 
-
-        let token = jwt.sign(                         // JWT Creation
+        //Create Token by jsonwebtoken
+        let token = jwt.sign(
             {
+                //Payload
                 userId: user._id.toString(),
-                group: "seventy-three",                                      // Payload
+                group: "seventy-three",
                 project: "ProductsManagement",
                 iat: Math.floor(Date.now() / 1000),
                 exp: Math.floor(Date.now() / 1000) + 480 * 60 * 60
@@ -155,6 +168,7 @@ const loginUser = async function (req, res) {
             "group73-project5"              // Secret Key 
         )
 
+        //for successfull login return response userId with generated token to body
         return res.status(201).send({ status: true, data: { userId: user._id, token } })
     }
     catch (err) {
