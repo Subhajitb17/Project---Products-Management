@@ -28,14 +28,6 @@ const createUser = async (req, res) => {
         //last name must  be in alphabate
         if (!nameRegex(lname)) return res.status(400).send({ status: false, message: "last name is invalid!" })
 
-        //phone number validation => phone is number mandatory
-        if (!objectValue(phone)) return res.status(400).send({ status: false, message: "Please enter phone number!" })
-        //phone number must be a valid indian phone number
-        if (!mobileRegex(phone)) return res.status(400).send({ status: false, message: "phone number is invalid!" })
-        //phone must must be unique => checking from DB that phone number already registered or not
-        let duplicatePhone = await userModel.findOne({ phone })
-        if (duplicatePhone) return res.status(400).send({ status: false, message: "phone number is already registered!" })
-
         //Email validation => Email is mandatory
         if (!objectValue(email)) return res.status(400).send({ status: false, message: "Please enter email!" })
         //Email must be a valid email address 
@@ -56,20 +48,30 @@ const createUser = async (req, res) => {
         //aws-url of S3
         let profileImage = uploadFileURL
 
+        //phone number validation => phone is number mandatory
+        if (!objectValue(phone)) return res.status(400).send({ status: false, message: "Please enter phone number!" })
+        //phone number must be a valid indian phone number
+        if (!mobileRegex(phone)) return res.status(400).send({ status: false, message: "phone number is invalid!" })
+        //phone must must be unique => checking from DB that phone number already registered or not
+        let duplicatePhone = await userModel.findOne({ phone })
+        if (duplicatePhone) return res.status(400).send({ status: false, message: "phone number is already registered!" })
+
         //Password validation => password is mandatory
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "Please enter password!" })
         //Password must be 8-50 characters 
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters!" })
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters and in alphabets and numbers only!" })
         //creating hash password by using bcrypt
         const passwordHash = await bcrypt.hash(password, 10);
         password = passwordHash
 
         // address pincode validation => should not start with "0"
-        try { address = JSON.parse(address) }
-        catch (err) { return res.status(400).send({ status: false, message: "Pincode should not start with 0!" }) }
-
         //Address validation => address is mandatory
         if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
+
+        try {
+            address = JSON.parse(address)
+        } catch (err) { return res.status(400).send({ status: false, message: "Pincode should not start with 0!" }) }
+
         //shipping address is mandatory
         if (!objectValue(address.shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })
         // shipping address street is mandatory
@@ -129,14 +131,14 @@ const loginUser = async function (req, res) {
 
         if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide email and password!" })  // 3rd V used here
 
-        let user = await userModel.findOne({ email: email })    // DB Call
-        if (!user) return res.status(400).send({ status: false, message: "email is not present in the Database!" })
-
         if (!objectValue(email)) return res.status(400).send({ status: false, message: "email is not present!" })    // Email Validation
         if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })    // 6th V used here
 
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })   // Passsword Validation
         if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters long!" })                      // 8th V used here
+
+        let user = await userModel.findOne({ email: email })    // DB Call
+        if (!user) return res.status(400).send({ status: false, message: "email is not present in the Database!" })
 
         let passwordCheck = await bcrypt.compare(req.body.password, user.password)
         if (!passwordCheck) return res.status(400).send({ status: false, message: "password is not correct!" })   // Passsword Validation
