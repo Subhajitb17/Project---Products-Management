@@ -143,7 +143,7 @@ const loginUser = async function (req, res) {
         //Password validation => Password is mandatory for login
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })
         //Password must be 8-50 characters 
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters longa and only alphabates and number only!" })                      // 8th V used here
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters and in alphabets and numbers only!" })                      // 8th V used here
         
         //Email Validation => checking from DB that email present in DB or not
         let user = await userModel.findOne({ email: email })
