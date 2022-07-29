@@ -48,16 +48,24 @@ const createProduct = async (req, res) => {
 
     if (isFreeShipping || isFreeShipping === "") { if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, msg: "Please enter isFreeShipping!" }) }  // 2nd V used here
 
-    if (availableSizes) {
-      if (!isValidArray(availableSizes)) return res.status(400).send({ status: false, msg: "Please enter availableSizes!" }) // 13th V used here 
-      let arr = availableSizes.split(",").map(x => x.trim())
-        if (!(arr.includes("S", "XS", "M", "X", "L", "XXL", "XL"))) {
-          return res.status(400).send({ status: false, message: "Available Sizes must be atlest S, XS, M, X, L, XXL, XL" })
+   // Validation For availableSizes
+   if (availableSizes) {
+    var array = availableSizes.toUpperCase().split(",")
+    // console.log(arr);  // Creating an array
+
+    //  Enum validation on availableSizes
+    for (let i = 0; i < array.length; i++) {
+        if (!(["S", "XS", "M", "X", "L", "XXL", "XL"]).includes(array[i])) {
+            return res.status(400).send({ status: false, message: `Sizes should be ${["S", "XS", "M", "X", "L", "XXL", "XL"]}` })
         }
-      
-      if (Array.isArray(arr)) { req.body.availableSizes = {$all : arr}
     }
-    }
+}
+
+  //  {
+  //    let arr = req.body.availableSizes.trim().split(",")
+  //    console.log(arr)
+  //   req.body.availableSizes =  arr
+  // }
 
     if (!objectValue(style)) return res.status(400).send({ status: false, msg: "Please enter style!" })  // 2nd V used here
 
@@ -67,7 +75,7 @@ const createProduct = async (req, res) => {
 
     if (isDeleted === true || isDeleted === "") return res.status(400).send({ status: false, msg: "isDeleted must be false!" })  // Boolean Validation
 
-    const products = { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSizes, style, installments, isDeleted }
+    const products = { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSizes:array, style, installments, isDeleted }
 
     const productCreation = await productModel.create(products)
 

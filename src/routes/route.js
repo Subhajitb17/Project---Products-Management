@@ -17,7 +17,7 @@ route.get("/user/:userId/profile" , authentication, getUserDeatailsById)
 route.put("/user/:userId/profile" , authentication, updateUserDetails)
 
 
-route.post("/products" , createProduct)
+route.post("/products" , createProduct) 
 
 
 

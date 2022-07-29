@@ -117,7 +117,7 @@ const createUser = async (req, res) => {
         res.status(500).send({ status: false, message: error.message })
     }
 
-}
+} 
 
 //-----------------------------------------------------  [SECOND API]  -------------------------------------------------------\\
 
@@ -131,13 +131,13 @@ const loginUser = async function (req, res) {
         if (!user) return res.status(400).send({ status: false, message: "email is not present in the Database!" })
 
         if (!objectValue(email)) return res.status(400).send({ status: false, message: "email is not present!" })    // Email Validation
-        if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })    // 6th V used here
+        if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })    // 6th V used here 
 
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })   // Passsword Validation
         if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters long!" })                      // 8th V used here
 
         let passwordCheck = await bcrypt.compare(req.body.password, user.password)
-        if (!passwordCheck) return res.status(400).send({ status: false, message: "password is not correct!" })   // Passsword Validation
+        if (!passwordCheck) return res.status(400).send({ status: false, message: "password is not correct!" })   // Passsword Validation  //take this above 
 
         if (!user) { return res.status(404).send({ status: false, message: "email or the password is invalid!" }) }
 
