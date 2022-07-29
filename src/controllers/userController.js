@@ -69,8 +69,8 @@ const createUser = async (req, res) => {
         if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
 
         try {
-            address = JSON.parse(address)
-        } catch (err) { return res.status(400).send({ status: false, message: "Pincode should not start with 0!" }) }
+            address = JSON.parse(req.body.address)
+        } catch (err) { return res.status(400).send({ status: false, message: "address format error or pincode error!" }) }
 
         //shipping address is mandatory
         if (!objectValue(address.shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })
@@ -260,7 +260,7 @@ const updateUserDetails = async function (req, res) {
 
 
         if (address) {                              // Nested If used here
-            try { address = JSON.parse(address) }
+            try { address = JSON.parse(req.body.address) }
             catch (err) { return res.status(400).send({ status: false, message: "Pincode should not start from 0!" }) }
             if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter address!" })
             // 2nd V used above
