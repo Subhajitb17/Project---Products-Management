@@ -14,8 +14,8 @@ const createCart = async (req, res) => {
 
     const userId = req.params.userId
     if (!isValidObjectId(userId)) return res.status(400).send({ status: false, msg: "userId is invalid!" })  // 1st V used here
-    // let duplicateUserId = await userModel.findById({ _id: userId })
-    // if (duplicateUserId) return res.status(400).send({ status: false, message: "userId is already present in DB!" })
+    let duplicateUserId = await userModel.findById(userId)
+    if (!duplicateUserId) return res.status(400).send({ status: false, message: "userId is not present in DB!" })
 
     let {cartId, productId, quantity, totalPrice, totalItems } = req.body   // Destructuring
 
@@ -23,7 +23,7 @@ const createCart = async (req, res) => {
 
     if(cartId) {
       if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, msg: "cartId is invalid!" })  // 1st V used here
-      findCartById = await cartModel.findById({_id: cartId})
+      findCartById = await cartModel.findOne({_id: cartId, userId: userId})
       if (!findCartById) { return res.status(404).send({ status: false, msg: "Cart not found!" }) } // DB Validation
     }
      
@@ -39,7 +39,7 @@ const createCart = async (req, res) => {
 
     if (!numberValue2(totalItems)) return res.status(400).send({ status: false, msg: "Please enter totalItems in correct format!" }) //15th V used here
 
-    const cartItems = { cartId, items: [productId, quantity], totalPrice, totalItems }   // Destructuring
+    const cartItems = { userId:userId, items: [{productId:productId, quantity:quantity}], totalPrice:totalPrice, totalItems:totalItems }   // Destructuring
 
     const cartCreation = await cartModel.create(cartItems)
 
@@ -50,7 +50,7 @@ const createCart = async (req, res) => {
  
     // }
 
-    res.status(201).send({ status: true, message: 'Success', data: userId, cartCreation })
+    res.status(201).send({ status: true, message: 'Success', data: cartCreation })
 
   }
   catch (error) {
