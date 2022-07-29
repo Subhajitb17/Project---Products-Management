@@ -13,6 +13,8 @@ const isValidObjectId = (objectId) => {
 const objectValue = (value) => {
   if (typeof value === "undefined" || value === null || typeof value === "boolean" || typeof value === "number") return false;
   if (typeof value === "string" && value.trim().length === 0) return false;
+  if (typeof value === "object" && Object.keys(value).length === 0) return false;
+
   return true;
 };
 
@@ -57,7 +59,7 @@ const passwordRegex = (value) => {
 // 8th Validator ==>
 
 const pincodeRegex = (value) => {
-  let pincodeRegex = /^[1-9][0-9]{5}$/;
+  let pincodeRegex = /^[1-9]{1}[0-9]{5}$/;
   if (pincodeRegex.test(value))
     return true;
 }
