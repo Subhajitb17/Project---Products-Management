@@ -123,33 +123,46 @@ const createUser = async (req, res) => {
 
 }
 
-//-----------------------------------------------------  [SECOND API]  -------------------------------------------------------\\
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////       LOGIN    USER     API       //////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const loginUser = async function (req, res) {
     try {
         let { email, password } = req.body  // Destructuring
 
-        if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide email and password!" })  // 3rd V used here
+        // Request body validation => empty or not
+        if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide email and password!" })
 
-        if (!objectValue(email)) return res.status(400).send({ status: false, message: "email is not present!" })    // Email Validation
-        if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })    // 6th V used here
+        //Email is mandatory for login
+        if (!objectValue(email)) return res.status(400).send({ status: false, message: "email is not present!" })
+        //Email must be a valid email address
+        if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })
 
-        if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })   // Passsword Validation
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters long!" })                      // 8th V used here
-
-        let user = await userModel.findOne({ email: email })    // DB Call
+        //Password validation => Password is mandatory for login
+        if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })
+        //Password must be 8-50 characters 
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters and in alphabets and numbers only!" })                      // 8th V used here
+        
+        //Email Validation => checking from DB that email present in DB or not
+        let user = await userModel.findOne({ email: email })
         if (!user) return res.status(400).send({ status: false, message: "email is not present in the Database!" })
 
+        //password check by comparing request body password and the password from bcrypt hash password
         let passwordCheck = await bcrypt.compare(req.body.password, user.password)
-        if (!passwordCheck) return res.status(400).send({ status: false, message: "password is not correct!" })   // Passsword Validation
-
+        //request body password and bcrypt hash password not match
+        if (!passwordCheck) return res.status(400).send({ status: false, message: "password is not correct!" })
+        
+        //Bad Request => Email or password is invalid 
         if (!user) { return res.status(404).send({ status: false, message: "email or the password is invalid!" }) }
 
-
-        let token = jwt.sign(                         // JWT Creation
+        //Create Token by jsonwebtoken
+        let token = jwt.sign(
             {
+                //Payload
                 userId: user._id.toString(),
-                group: "seventy-three",                                      // Payload
+                group: "seventy-three",
                 project: "ProductsManagement",
                 iat: Math.floor(Date.now() / 1000),
                 exp: Math.floor(Date.now() / 1000) + 480 * 60 * 60
@@ -157,6 +170,7 @@ const loginUser = async function (req, res) {
             "group73-project5"              // Secret Key 
         )
 
+        //for successfull login return response userId with generated token to body
         return res.status(201).send({ status: true, data: { userId: user._id, token } })
     }
     catch (err) {
