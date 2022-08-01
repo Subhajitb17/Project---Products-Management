@@ -200,7 +200,7 @@ const updateCrate = async function (req, res) {
 };
 //----------------------------------------------------  [TWELVETH API]  ------------------------------------------------------------\\
 
-const deleteReviewbyId = async (req, res) => {
+const getCartDetails = async (req, res) => {
   try {
     const bookId = req.params.bookId
     const reviewId = req.params.reviewId;
