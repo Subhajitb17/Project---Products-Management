@@ -38,15 +38,18 @@ const createUser = async (req, res) => {
         if (duplicateEmail) return res.status(400).send({ status: false, message: "email is already registered!" })
 
         //upload Profile Image(a file) by aws in S3
+        // request profile image from body
         let files = req.files
         let uploadFileURL;
+        //check file of profileImage
         if (files && files.length > 0) {
+            //upload file to S3 of AWs
             uploadFileURL = await aws.uploadFile(files[0])
         }
         else {
             return res.status(400).send({ status: false, message: "Please add profile image" })
         }
-        //aws-url of S3
+        ////store the URL where profile image uploaded in a variable (AWS Url)
         let profileImage = uploadFileURL
 
         //phone number validation => phone is number mandatory
@@ -154,23 +157,35 @@ const loginUser = async function (req, res) {
     }
 }
 
-//-----------------------------------------------------  [THIRD API]  -------------------------------------------------------\\
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////     GET    USER     DETAILS     BY     USERID      API       ////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const getUserDeatailsById = async (req, res) => {
 
     try {
+        //request userId from path params
         const userId = req.params.userId
 
-        if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }    // 1st V used here
+        //UserId valid ObjectId or not
+        if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }
 
+        //Authorization Validation
+        //request bearer token from header for authorization
         let bearerToken = req.headers.authorization;
+        //split bearerToken
         let token = bearerToken.split(" ")[1]
-        let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+        //decoded token to verify with secrect key
+        let decodedToken = jwt.verify(token, "group73-project5")
+        //userId from token and userId from params not match
         if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-        let findUsersbyId = await userModel.findOne({ _id: userId })    // DB Call
-        if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }   // DB Validation
+        //DB Call => find userId from userModel
+        let findUsersbyId = await userModel.findOne({ _id: userId })
+        //user not found in DB
+        if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }
 
+        //Successfull execution response with userDetails
         res.status(200).send({ status: true, data: findUsersbyId })
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message });
@@ -178,71 +193,97 @@ const getUserDeatailsById = async (req, res) => {
 }
 
 
-//----------------------------------------------------  [FOURTH API]  ------------------------------------------------------\\
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////       UPDATE   USER     DETAILS     BY       ID      API       //////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const updateUserDetails = async function (req, res) {
     try {
+        //request userId from path params
         const userId = req.params.userId;
 
-        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "userId is invalid!" })   // 1st V used here
+        //userId validation => userId is valid ObjcetId or not
+        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "userId is invalid!" })
 
+        //Authorization validation
+        //request bearer token from header for authorization
         let bearerToken = req.headers.authorization;
+        //split barer token
         let token = bearerToken.split(" ")[1]
-        let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+        //decoded token to verify with secrect key
+        let decodedToken = jwt.verify(token, "group73-project5")
+        //userId from token and userId from params not match
         if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-        let findUsersbyId = await userModel.findOne({ _id: userId })    // DB Call
-        if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }   // DB Validation
+        //DB call => find userId from userModel
+        let findUsersbyId = await userModel.findOne({ _id: userId })
+        //user not found in DB
+        if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }
 
         let { address, fname, lname, email, phone, password, profileImage } = req.body;  // Destructuring
 
 
-        //upload book cover(a file) by aws
+        //upload profile image(a file) by aws
+        //request profile image from body
         let files = req.files
         let uploadFileURL;
+        //check file of profileImage 
         if (files && files.length > 0) {
+            //upload file to S3 of AWS
             uploadFileURL = await aws.uploadFile(files[0])
+            //store the URL where profile image uploaded in a variable (AWS Url)
             profileImage = uploadFileURL
         }
-        //aws-url
 
-        if (!(fname || lname || email || phone || password || address || profileImage)) return res.status(400).send({ status: false, message: "Please input valid params to update!" });
+        //valid parameters are given to update user details or not 
+        if (!(fname || lname || email || phone || password || address || profileImage)) {
+            return res.status(400).send({ status: false, message: "Please input valid params to update!" });
+        }
 
-        if (fname) {       // Nested If used here
+        //First name Validation => if key present, then value must not be empty
+        if (fname) {
             if (!objectValue(fname)) return res.status(400).send({ status: false, message: "Please enter first name!" })
-        }        // 2nd V used above
+        }
 
-        if (lname) {       // Nested If used here
+        //last name validation =>  if key present, then value must not be empty
+        if (lname) {
             if (!objectValue(lname)) return res.status(400).send({ status: false, message: "Please enter last name!" })
-        }        // 2nd V used above
+        }
 
-        if (email) {          // Nested If used here
-            if (!objectValue(email)) return res.status(400).send({ status: false, msg: "Please enter email!" }) // 2nd V used here   
-            if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })    // 6th V used here        
+        //email validation if present
+        if (email) {
+            //if key present then value must not be empty
+            if (!objectValue(email)) return res.status(400).send({ status: false, msg: "Please enter email!" })
+            // email is  valid email address or not  
+            if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })
+            //Unique Email Validation => checking from DB that email present in DB or not    
             let duplicateEmail = await userModel.findOne({ email })
-            if (duplicateEmail) return res.status(400).send({ status: false, message: "email is already in use!" })    // Duplicate Validation
+            if (duplicateEmail) return res.status(400).send({ status: false, message: "email is already in use!" })
         }
 
-        if (phone) {          // Nested If used here
-            if (!objectValue(phone)) return res.status(400).send({ status: false, msg: "Please enter email!" }) // 2nd V used here
+        //Phone number validation if present
+        if (phone) {
+            //if Key present then value must not be empty
+            if (!objectValue(phone)) return res.status(400).send({ status: false, msg: "Please enter email!" })
+            // phone number is valid Indian phone number or not
             if (!mobileRegex(phone)) return res.status(400).send({ status: false, message: "phone number is invalid!" })
-            // 7th V used above
+            //Unique phone number Validation => checking from DB that phone number present in DB or not 
             let duplicatePhone = await userModel.findOne({ phone })
-            if (duplicatePhone) return res.status(400).send({ status: false, message: "Phone number is already in use!" })    // Duplicate Validation
+            if (duplicatePhone) return res.status(400).send({ status: false, message: "Phone number is already in use!" })
         }
 
-
+        //Password validation
         if (password) {
-            if (!objectValue(password)) return res.status(400).send({ status: false, message: "Please enter password!" })  // 2nd V used here
-            if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters!" })                      // 8th V used here
-
+            //if key present then value must not be empty
+            if (!objectValue(password)) return res.status(400).send({ status: false, message: "Please enter password!" })
+            ////Password must be 8-50 characters 
+            if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters!" })
+            //creating hash password by using bcrypt
             const passwordHash = await bcrypt.hash(password, 10);
             password = passwordHash
         }
 
-
-
-         // Address validation => address is mandatory
+        // Address validation => if key is present then value must not be empty
         if (address) {
             if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
         }
@@ -261,11 +302,13 @@ const updateUserDetails = async function (req, res) {
         if (!address.billing.pincode || isNaN(address.billing.pincode)) return res.status(400).send({ status: false, message: "Please enter your billing pincode!" });
         if (!pincodeRegex(address.billing.pincode)) return res.status(400).send({ status: false, message: "Billing pincode is invalid!" });
 
+        //DB call and Update => update user details by requested body parameters 
         const updatedUserDetails = await userModel.findOneAndUpdate(
             { _id: userId },
             { $set: { fname, lname, email, phone, password, address, profileImage } },
             { new: true }
         );
+        //Successfull upadte user return response to body
         return res.status(200).send({ status: true, message: 'Success', data: updatedUserDetails });
 
     } catch (err) {
@@ -273,4 +316,5 @@ const updateUserDetails = async function (req, res) {
     }
 };
 
-module.exports = { createUser, loginUser, getUserDeatailsById, updateUserDetails }  // Destructuring & Exporting
+// Destructuring & Exporting modules
+module.exports = { createUser, loginUser, getUserDeatailsById, updateUserDetails }  
