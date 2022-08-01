@@ -56,7 +56,8 @@ const createProduct = async (req, res) => {
 
 
     // Validation For availableSizes
-    let availableSize
+    let availableSize 
+    if (!availableSizes) return res.status(400).send({ status: false, msg: "Please enter atleast one available size!" })
     if (availableSizes) {
       availableSize = availableSizes.toUpperCase().split(",")
       console.log(availableSize);  // Creating an array
@@ -213,7 +214,6 @@ const updateProduct = async function (req, res) {
     let availableSize
     if (availableSizes) {
       availableSize = availableSizes.toUpperCase().split(",")
-      console.log(availableSize);  // Creating an array
 
       //  Enum validation on availableSizes
       for (let i = 0; i < availableSize.length; i++) {
