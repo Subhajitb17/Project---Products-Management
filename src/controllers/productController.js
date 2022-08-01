@@ -68,7 +68,8 @@ const createProduct = async (req, res) => {
         }
       }
     }
-  }
+   
+
 
   //  {
   //    let arr = req.body.availableSizes.trim().split(",")
@@ -95,6 +96,7 @@ const createProduct = async (req, res) => {
 }
  catch (error) {
   res.status(500).send({ status: false, msg: error.message });
+}
 }
 
 
@@ -277,6 +279,9 @@ const deleteProductsbyId = async (req, res) => {
   }
 }
 
+ 
+module.exports = { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId }  
 
-module.exports = { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId }  // Destructuring & Exporting
+//Destructuring & Exporting
 
+ 
