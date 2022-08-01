@@ -35,14 +35,6 @@ const createCart = async (req, res) => {
 
     const cartItems = { userId:userId, items: [{productId:productId, quantity:quantity}], totalPrice:totalPrice, totalItems:totalItems }   // Destructuring
 
-    // const cartCreation = await cartModel.create(cartItems)
-
-    // if (reviewCreation) {
-    //   findBooksbyId.reviews = findBooksbyId.reviews + 1;     // Increasing the review count by 1
-
-      // await booksModel.findOneAndUpdate({ _id: bookId, isDeleted: false }, { $set: { reviews: findBooksbyId.reviews } })
- 
-    // }
     if(!cartId) {
       // if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, msg: "cartId is invalid!" })  // 1st V used here
       findCartById = await cartModel.findOne({userId: userId})
@@ -57,7 +49,11 @@ const createCart = async (req, res) => {
     }
 
     if(cartId){
-      
+      const updateCart = await cartModel.findByIdAndUpdate(
+        {_id:cartId},
+        {$addToSet: {productId:productId,quantity:quantity}},
+        {new:true})
+        return res.status(201).send({msg:"done",data:updateCart})
     }
 
   }
@@ -145,3 +141,85 @@ const deleteReviewbyId = async (req, res) => {
 }
 
 module.exports = { createCart }  // Destructuring
+
+
+// if (cartId) {
+//   if (!isValidObjectId(cartId)) {
+//     return res.status(400).send({ status: false, message: "Please provide valid cartId" });
+// }
+
+// var cartIsUnique = await cartModel.findOne({ _id: cartId, isDeleted: false })
+
+// if (!cartIsUnique) {
+//     return res.status(400).send({ status: false, message: "cartId doesn't exits" })
+// }
+// }
+
+// const findCartOfUser = await cartModel.findOne({ userId: userId, isDeleted: false });
+
+// //------------Create New Cart------------//
+
+// if (!findCartOfUser) {
+
+// var cartData = {
+//     userId: userId,
+//     items: [
+//         {
+//             productId: productId,
+//             quantity: quantity,
+//         },
+//     ],
+//     totalPrice: findProduct.price * quantity,
+//     totalItems: 1,
+// };
+
+// const createCart = await cartModel.create(cartData);
+// return res.status(201).send({ status: true, message: `Cart created successfully`, data: createCart });
+// }
+// //--------Check Poduct Id Present In Cart-----------//
+
+// if (findCartOfUser) {
+
+// let price = findCartOfUser.totalPrice + quantity * findProduct.price;
+
+// let arr = findCartOfUser.items;
+
+// for (i in arr) {
+//     if (arr[i].productId.toString() === productId) {
+//         arr[i].quantity += quantity;
+//         let updatedCart = {
+//             items: arr,
+//             totalPrice: price,
+//             totalItems: arr.length,
+//         };
+// //-------------Update Cart---------------------//
+
+//         let responseData = await cartModel.findOneAndUpdate(
+//             { _id: findCartOfUser._id },
+//             updatedCart,
+//             { new: true }
+//         );
+//         return res.status(200).send({ status: true, message: `Product added successfully`, data: responseData });
+
+
+
+//     }
+// }
+// //---------Add Item & Update Cart----------//
+
+// arr.push({ productId: productId, quantity: quantity });
+
+// let updatedCart = {
+//     items: arr,
+//     totalPrice: price,
+//     totalItems: arr.length,
+// };
+
+// let responseData = await cartModel.findOneAndUpdate({ _id: findCartOfUser._id }, updatedCart, { new: true });
+// return res.status(200).send({ status: true, message: `Product added successfully`, data: responseData });
+// }
+
+// } catch (error) {
+// res.status(500).send({ status: false, data: error.message });
+// }
+// };
