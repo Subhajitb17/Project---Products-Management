@@ -58,9 +58,9 @@ const createCart = async function (req, res) {
         return res.status(400).send({ status: false, message: "Please provide valid cartId!" });
       }
 
-      let cartIsUnique = await cartModel.findOne({ _id: cartId, isDeleted: false })
+      let duplicateCart = await cartModel.findOne({ _id: cartId, isDeleted: false })
 
-      if (!cartIsUnique) {
+      if (!duplicateCart) {
         return res.status(400).send({ status: false, message: "cartId doesn't exists!" })
       }
     }
@@ -90,7 +90,7 @@ const createCart = async function (req, res) {
 
     if (findCartOfUser) {
 
-      let price = quantity * findProduct.price + findCartOfUser.totalPrice;
+      let price = findCartOfUser.totalPrice + quantity * findProduct.price;
 
       let arr = findCartOfUser.items;
 
@@ -152,18 +152,18 @@ const updateCrate = async function (req, res) {
 
     if (!isValidObjectId(productId)) return res.status(400).send({ status: false, message: "Please enter valid productId!" });
 
-    if (removeProduct != 1 && removeProduct != 0) return res.status(400).send({ status: false, message: "Please enter valid removeProduct value as 1 or 0!" });
+    if (removeProduct !== 1 || 0) return res.status(400).send({ status: false, message: "Please enter valid removeProduct value as 1 or 0!" });
 
-    let checkCartId = await cartModel.findById(cartId);
+    let findCartById = await cartModel.findById(cartId);
 
-    if (!checkCartId) return res.status(404).send({ status: false, message: "CartId doesnt exists!" });
+    if (!findCartById) return res.status(404).send({ status: false, message: "CartId doesnt exists!" });
 
-    let thisProduct = await productModel.findOne({ _id: productId, isDeleted: false, });
+    let findProductById = await productModel.findOne({ _id: productId, isDeleted: false, });
 
-    if (!thisProduct) return res.status(400).send({ status: false, message: "Product has been deleted or doesnt exists!" });
+    if (!findProductById) return res.status(400).send({ status: false, message: "Product has been deleted or does not exist!" });
 
     let update = {};
-    let product = checkCartId.items;
+    let product = findCartById.items;
     let quantity = 0;
 
     for (let i = 0; i < product.length; i++) {
@@ -178,16 +178,16 @@ const updateCrate = async function (req, res) {
 
       for (let i = 0; i < product.length; i++) {
         if (product[i].productId == productId) {
-          update.totalPrice = checkCartId.totalPrice - thisProduct.price * product[i].quantity;
-          update.totalItems = checkCartId.totalItems - 1;
+          update.totalPrice = findCartById.totalPrice - findProductById.price * product[i].quantity;
+          update.totalItems = findCartById.totalItems - 1;
           break;
         }
       }
     } else if (removeProduct == 1) {
       for (let i = 0; i < product.length; i++) {
         if (product[i].productId == productId) {
-          update[`items.${i}.quantity`] = checkCartId.items[i].quantity - 1;
-          update.totalPrice = checkCartId.totalPrice - thisProduct.price;
+          update[`items.${i}.quantity`] = findCartById.items[i].quantity - 1;
+          update.totalPrice = findCartById.totalPrice - findProductById.price;
           break;
         }
       }
