@@ -1,111 +1,248 @@
 const productModel = require("../models/productModel");
 const cartModel = require("../models/cartModel")
 const userModel = require("../models/userModel")
-const { objectValue, keyValue, numberValue, isValidObjectId, strRegex, numberValue2 } = require("../middleware/validator");  // IMPORTING VALIDATORS
+const jwt = require('jsonwebtoken')
+const { objectValue, keyValue, numberValue, isValidObjectId, strRegex, numberValue2, validQuantity } = require("../middleware/validator");  // IMPORTING VALIDATORS
 
 
 //-----------------------------------------------------  [TENTH API]  --------------------------------------------------------------\\
 
 // V = Validator 
 
-const createCart = async (req, res) => {
+//---------------Create Cart--------------//
+
+const createCart = async function (req, res) {
 
   try {
-    const userId = req.params.userId
-    if (!isValidObjectId(userId)) return res.status(400).send({ status: false, msg: "userId is invalid!" })  // 1st V used here
-    let duplicateUserId = await userModel.findById(userId)
-    if (!duplicateUserId) return res.status(400).send({ status: false, message: "userId is not present in DB!" })
+    const userId = req.params.userId;
+    const requestBody = req.body;
+    let { quantity, productId, cartId } = requestBody;
 
-    let {cartId, productId, quantity, totalPrice, totalItems } = req.body   // Destructuring
+    let bearerToken = req.headers.authorization;
+    let token = bearerToken.split(" ")[1]
+    let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-    if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide details!" })   // 3rd V used here
+    //-----------Request Body Validation---------//
 
-     
-    if (!isValidObjectId(productId)) return res.status(400).send({ status: false, msg: "productId is invalid!" })  // 1st V used here
-    const findProductById = await productModel.findOne({_id: productId, isDeleted: false })      // DB Call
-    if (!findProductById) { return res.status(404).send({ status: false, msg: "Product not found or does not exist!" }) } // DB Validation
+    if (!keyValue(requestBody)) {
+      return res.status(400).send({ status: false, message: "Please provide valid request body" });
+    }
 
+    if (!isValidObjectId(userId)) {
+      return res.status(400).send({ status: false, message: "Please provide valid User Id" });
+    }
 
-    if (!numberValue2(quantity)) return res.status(400).send({ status: false, msg: "Please enter valid quantity!" })          // 2nd V used here
-    if (quantity < 1) return res.status(400).send({ status: false, msg: "Quantity cannot be less than 1!" }) 
-    
-    if (!numberValue2(totalPrice)) return res.status(400).send({ status: false, msg: "Please enter totalPrice in correct format!" }) //15th V used here
+    if (!isValidObjectId(productId)) {
+      return res.status(400).send({ status: false, message: "Please provide valid Product Id" });
+    }
 
-    if (!numberValue2(totalItems)) return res.status(400).send({ status: false, msg: "Please enter totalItems in correct format!" }) //15th V used here
+    if (!quantity) {
+      quantity = 1;
 
-    const cartItems = { userId:userId, items: [{productId:productId, quantity:quantity}], totalPrice:totalPrice, totalItems:totalItems }   // Destructuring
-
-    if(!cartId) {
-      // if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, msg: "cartId is invalid!" })  // 1st V used here
-      findCartById = await cartModel.findOne({userId: userId})
-      if(findCartById){
-        return res.status(400).send({status: false, message: `cart is already created- Use ${findCartById._id} this cartId`})
+    } else {
+      if (!validQuantity(quantity)) {
+        return res.status(400).send({ status: false, message: "Please provide valid quantity & it must be greater than zero." });
       }
-      // if (!findCartById) { return res.status(404).send({ status: false, msg: "Cart not found!" }) } // DB Validation
-      if(!findCartById){
-        const newcart = await cartModel.create(cartItems)
-        return res.status(201).send({ status: true, message: "Cart created and product added successfully", data: newcart})
+    }
+    //---------Find User by Id--------------//
+
+    const findUser = await userModel.findById({ _id: userId });
+
+    if (!findUser) {
+      return res.status(400).send({ status: false, message: `User doesn't exist by ${userId}` });
+    }
+
+    const findProduct = await productModel.findOne({ _id: productId, isDeleted: false });
+
+    if (!findProduct) {
+      return res.status(400).send({ status: false, message: `Product doesn't exist by ${productId}` });
+    }
+    //----------Find Cart By Id----------//
+    if (cartId) {
+      if (!isValidObjectId(cartId)) {
+        return res.status(400).send({ status: false, message: "Please provide valid cartId" });
+      }
+
+      let cartIsUnique = await cartModel.findOne({ _id: cartId, isDeleted: false })
+
+      if (!cartIsUnique) {
+        return res.status(400).send({ status: false, message: "cartId doesn't exists" })
       }
     }
 
-    if(cartId){
-      const updateCart = await cartModel.findByIdAndUpdate(
-        {_id:cartId},
-        {$addToSet: {productId:productId,quantity:quantity}},
-        {new:true})
-        return res.status(201).send({msg:"done",data:updateCart})
+    const findCartOfUser = await cartModel.findOne({ userId: userId, isDeleted: false });
+
+    //------------Create New Cart------------//
+
+    if (!findCartOfUser) {
+
+      let cartData = {
+        userId: userId,
+        items: [
+          {
+            productId: productId,
+            quantity: quantity,
+          },
+        ],
+        totalPrice: findProduct.price * quantity,
+        totalItems: 1,
+      };
+
+      const createCart = await cartModel.create(cartData);
+      return res.status(201).send({ status: true, message: `Cart created successfully`, data: createCart });
+    }
+    //--------Check Poduct Id Present In Cart-----------//
+
+    if (findCartOfUser) {
+
+      let price = quantity * findProduct.price + findCartOfUser.totalPrice;
+
+      let arr = findCartOfUser.items;
+
+      for (i in arr) {
+        if (arr[i].productId.toString() === productId) {
+          arr[i].quantity += quantity;
+          let updatedCart = {
+            items: arr,
+            totalPrice: price,
+            totalItems: arr.length,
+          };
+          //-------------Update Cart---------------------//
+
+          let responseData = await cartModel.findOneAndUpdate(
+            { _id: findCartOfUser._id },
+            updatedCart,
+            { new: true }
+          );
+          return res.status(200).send({ status: true, message: `Product added successfully`, data: responseData });
+
+        }
+      }
+      //---------Add Item & Update Cart----------//
+
+      arr.push({ productId: productId, quantity: quantity });
+
+      let updatedCart = {
+        items: arr,
+        totalPrice: price,
+        totalItems: arr.length,
+      };
+
+      let responseData = await cartModel.findOneAndUpdate({ _id: findCartOfUser._id }, updatedCart, { new: true });
+      return res.status(200).send({ status: true, message: `Product added successfully`, data: responseData });
     }
 
+  } catch (error) {
+    res.status(500).send({ status: false, data: error.message });
   }
-  catch (error) {
-    res.status(500).send({ status: false, msg: error.message })
-  }
-
-}
+};
 
 //------------------------------------------------------  [ELEVENTH API]  -----------------------------------------------------------\\
 
-const updateReviews = async function (req, res) {
+const updateCrate = async function (req, res) {
   try {
-    const {bookId, reviewId} = req.params;                         // Destructuring
-    const { review, rating, reviewedBy } = req.body;                  // Destructuring
+    const userId = req.params.userId;
+    let { cartId, productId, removeProduct } = req.body;
 
-    if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide details!" })  // 3rd V used here
+    let bearerToken = req.headers.authorization;
+    let token = bearerToken.split(" ")[1]
+    let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-    if (!isValidObjectId(bookId)) return res.status(400).send({ status: false, msg: "bookId is invalid!" })  // 1st V used here
+    //-----------Request Body Validation---------//
 
-    if (!isValidObjectId(reviewId)) return res.status(400).send({ status: false, msg: "reviewId is invalid!" })  // 1st V used here
-
-    if (review || review === "") {
-      if (!objectValue(review)) return res.status(400).send({ status: false, msg: "Please enter review!" })   // 2nd V used here
+    if (!keyValue(req.body)) {
+      return res.status(400).send({ status: false, message: "Please provide valid request body!" });
     }
 
-    if (rating || rating === "") {
-      if (!numberValue(rating)) return res.status(400).send({ status: false, msg: "Please enter rating in correct format!" }) // 15th V used here
-      if (!ratingRegex(rating)) return res.status(400).send({ status: false, msg: "rating is invalid!" })  // 10th V used here
-    } 
-
-    if (reviewedBy || reviewedBy === "") {
-      if (!objectValue(reviewedBy)) return res.status(400).send({ status: false, msg: "Please enter reviewer's name!" })    // 2nd V used here
-      if (!strRegex(reviewedBy)) return res.status(400).send({ status: false, msg: "Please enter reviewer's name correctly!" }) // 11th V used here
-      
+    if (!isValidObjectId(userId)) {
+      return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
     }
 
-    const findBooksbyId = await booksModel.findOne({ _id: bookId, isDeleted: false })   // DB Call
-    if (!findBooksbyId) { return res.status(404).send({ status: false, msg: "Books not found or does not exist!" }) } // DB Validation
+    if (!isValidObjectId(productId)) {
+      return res.status(400).send({ status: false, message: "Please provide valid Product Id!" });
+    }
 
-    const findReview = await reviewModel.findOne({ _id: reviewId, isDeleted: false })  // DB Call
-    if (!findReview) { return res.status(404).send({ status: false, msg: "Review not found or does not exist!" }) } // DB Validation
+    //---------Find User by Id--------------//
 
-    const updatedreview = await reviewModel.findOneAndUpdate(
-      { _id: reviewId },
-      { $set: { review, rating, reviewedBy }, },
-      { new: true }
-    );
-    return res.status(200).send({ status: true, message: 'Success', data: findBooksbyId, updatedreview });
+    const findUser = await userModel.findById({ _id: userId });
 
-  } catch (err) {
-    return res.status(500).send({ status: false, msg: err.message });
+    if (!findUser) {
+      return res.status(400).send({ status: false, message: `User doesn't exist by ${userId}!` });
+    }
+
+    const findProduct = await productModel.findOne({ _id: productId, isDeleted: false });
+
+    if (!findProduct) {
+      return res.status(400).send({ status: false, message: `Product doesn't exist by ${productId}!` });
+    }
+    //----------Find Cart By Id----------//
+    if (cartId) {
+      if (!isValidObjectId(cartId)) {
+        return res.status(400).send({ status: false, message: "Please provide valid cartId!" });
+      }
+
+      let duplicateCart = await cartModel.findOne({ _id: cartId, isDeleted: false })
+
+      if (!duplicateCart) {
+        return res.status(400).send({ status: false, message: "cartId doesn't exists!" })
+      }
+    }
+
+    const findCartOfUser = await cartModel.findOne({ userId: userId, isDeleted: false });
+    if (!findCartOfUser) return res.status(400).send({ status: false, message: "User's cart does not exist!" })
+
+
+    //--------Check Poduct Id Present In Cart-----------//
+
+    if (findCartOfUser) {
+
+      let price = quantity * findProduct.price + findCartOfUser.totalPrice;
+
+      let arr = findCartOfUser.items;
+
+      for (i in arr) {
+        if (arr[i].productId) {
+          arr[i].quantity -= quantity;
+          let updatedCart = {
+            items: arr,
+            totalPrice: price,
+            totalItems: arr.length,
+          };
+          //-------------Update Cart---------------------//
+          if (arr[i].quantity === 0) {
+            await cartModel.findOneAndDelete(
+              { _id: findCartOfUser._id },
+              arr[i].productId,
+              { new: true }
+            );
+          }
+          else {
+            await cartModel.findOneAndUpdate(
+              { _id: findCartOfUser._id },
+              updatedCart,
+              { new: true }
+            );
+          }
+        }
+      }
+      //---------Add Item & Update Cart----------//
+
+      arr.push({ productId: productId, quantity: quantity });
+
+      let updatedCart = {
+        items: arr,
+        totalPrice: price,
+        totalItems: arr.length,
+      };
+
+      let responseData = await cartModel.findOneAndUpdate({ _id: findCartOfUser._id }, updatedCart, { new: true });
+      return res.status(200).send({ status: true, message: `Product added successfully`, data: responseData });
+    }
+
+  } catch (error) {
+    res.status(500).send({ status: false, data: error.message });
   }
 };
 //-------------------------------------------------------  TENTH API  ---------------------------------------------------------------------\\
@@ -126,12 +263,12 @@ const deleteReviewbyId = async (req, res) => {
 
     findBooksbyId.reviews = findBooksbyId.reviews - 1;        // Decreasing the review count by 1
 
-     await booksModel.findOneAndUpdate({ _id: bookId, isDeleted: false }, { $set: { reviews: findBooksbyId.reviews } }) ;
+    await booksModel.findOneAndUpdate({ _id: bookId, isDeleted: false }, { $set: { reviews: findBooksbyId.reviews } });
 
-     await reviewModel.findOneAndUpdate(
+    await reviewModel.findOneAndUpdate(
       { _id: reviewId, isDeleted: false },
       { $set: { isDeleted: true, deletedAt: new Date() } })
-      
+
 
     return res.status(200).send({ status: true, message: "Review deleted successfully!", data: findBooksbyId });
 
@@ -143,83 +280,3 @@ const deleteReviewbyId = async (req, res) => {
 module.exports = { createCart }  // Destructuring
 
 
-// if (cartId) {
-//   if (!isValidObjectId(cartId)) {
-//     return res.status(400).send({ status: false, message: "Please provide valid cartId" });
-// }
-
-// var cartIsUnique = await cartModel.findOne({ _id: cartId, isDeleted: false })
-
-// if (!cartIsUnique) {
-//     return res.status(400).send({ status: false, message: "cartId doesn't exits" })
-// }
-// }
-
-// const findCartOfUser = await cartModel.findOne({ userId: userId, isDeleted: false });
-
-// //------------Create New Cart------------//
-
-// if (!findCartOfUser) {
-
-// var cartData = {
-//     userId: userId,
-//     items: [
-//         {
-//             productId: productId,
-//             quantity: quantity,
-//         },
-//     ],
-//     totalPrice: findProduct.price * quantity,
-//     totalItems: 1,
-// };
-
-// const createCart = await cartModel.create(cartData);
-// return res.status(201).send({ status: true, message: `Cart created successfully`, data: createCart });
-// }
-// //--------Check Poduct Id Present In Cart-----------//
-
-// if (findCartOfUser) {
-
-// let price = findCartOfUser.totalPrice + quantity * findProduct.price;
-
-// let arr = findCartOfUser.items;
-
-// for (i in arr) {
-//     if (arr[i].productId.toString() === productId) {
-//         arr[i].quantity += quantity;
-//         let updatedCart = {
-//             items: arr,
-//             totalPrice: price,
-//             totalItems: arr.length,
-//         };
-// //-------------Update Cart---------------------//
-
-//         let responseData = await cartModel.findOneAndUpdate(
-//             { _id: findCartOfUser._id },
-//             updatedCart,
-//             { new: true }
-//         );
-//         return res.status(200).send({ status: true, message: `Product added successfully`, data: responseData });
-
-
-
-//     }
-// }
-// //---------Add Item & Update Cart----------//
-
-// arr.push({ productId: productId, quantity: quantity });
-
-// let updatedCart = {
-//     items: arr,
-//     totalPrice: price,
-//     totalItems: arr.length,
-// };
-
-// let responseData = await cartModel.findOneAndUpdate({ _id: findCartOfUser._id }, updatedCart, { new: true });
-// return res.status(200).send({ status: true, message: `Product added successfully`, data: responseData });
-// }
-
-// } catch (error) {
-// res.status(500).send({ status: false, data: error.message });
-// }
-// };

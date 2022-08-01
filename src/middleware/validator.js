@@ -124,5 +124,12 @@ const numberValue2 = (value) => {
 };
 
 
-module.exports = { isValidObjectId, objectValue, nameRegex, emailRegex, keyValue, mobileRegex, passwordRegex, pincodeRegex, isValidArray, booleanValue, numberValue, isValidDate, strRegex, urlRegex, numberValue2 };     // EXPORTING THEM
+//Validation for Quantity
+const validQuantity = function isInteger(value) {
+  if(value < 1) return false
+   if(value % 1 == 0 ) return true
+}
+
+
+module.exports = { isValidObjectId, objectValue, nameRegex, emailRegex, keyValue, mobileRegex, passwordRegex, pincodeRegex, isValidArray, booleanValue, numberValue, isValidDate, strRegex, urlRegex, numberValue2, validQuantity };     // EXPORTING THEM
                                                                                                         
