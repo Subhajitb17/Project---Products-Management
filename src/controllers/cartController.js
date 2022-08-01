@@ -20,11 +20,6 @@ const createCart = async (req, res) => {
 
     if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide details!" })   // 3rd V used here
 
-    if(cartId) {
-      if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, msg: "cartId is invalid!" })  // 1st V used here
-      findCartById = await cartModel.findOne({_id: cartId, userId: userId})
-      if (!findCartById) { return res.status(404).send({ status: false, msg: "Cart not found!" }) } // DB Validation
-    }
      
     if (!isValidObjectId(productId)) return res.status(400).send({ status: false, msg: "productId is invalid!" })  // 1st V used here
     const findProductById = await productModel.findOne({_id: productId, isDeleted: false })      // DB Call
@@ -40,7 +35,7 @@ const createCart = async (req, res) => {
 
     const cartItems = { userId:userId, items: [{productId:productId, quantity:quantity}], totalPrice:totalPrice, totalItems:totalItems }   // Destructuring
 
-    const cartCreation = await cartModel.create(cartItems)
+    // const cartCreation = await cartModel.create(cartItems)
 
     // if (reviewCreation) {
     //   findBooksbyId.reviews = findBooksbyId.reviews + 1;     // Increasing the review count by 1
@@ -48,8 +43,22 @@ const createCart = async (req, res) => {
       // await booksModel.findOneAndUpdate({ _id: bookId, isDeleted: false }, { $set: { reviews: findBooksbyId.reviews } })
  
     // }
+    if(!cartId) {
+      // if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, msg: "cartId is invalid!" })  // 1st V used here
+      findCartById = await cartModel.findOne({userId: userId})
+      if(findCartById){
+        return res.status(400).send({status: false, message: `cart is already created- Use ${findCartById._id} this cartId`})
+      }
+      // if (!findCartById) { return res.status(404).send({ status: false, msg: "Cart not found!" }) } // DB Validation
+      if(!findCartById){
+        const newcart = await cartModel.create(cartItems)
+        return res.status(201).send({ status: true, message: "Cart created and product added successfully", data: newcart})
+      }
+    }
 
-    res.status(201).send({ status: true, message: 'Success', data: cartCreation })
+    if(cartId){
+      
+    }
 
   }
   catch (error) {
