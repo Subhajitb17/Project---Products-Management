@@ -1,6 +1,7 @@
 const productModel = require("../models/productModel");
 const cartModel = require("../models/cartModel")
 const userModel = require("../models/userModel")
+const jwt = require('jsonwebtoken')
 const { objectValue, keyValue, numberValue, isValidObjectId, strRegex, numberValue2, validQuantity } = require("../middleware/validator");  // IMPORTING VALIDATORS
 
 
@@ -16,6 +17,11 @@ const createCart = async function (req, res) {
     const userId = req.params.userId;
     const requestBody = req.body;
     let { quantity, productId, cartId } = requestBody;
+
+    let bearerToken = req.headers.authorization;
+    let token = bearerToken.split(" ")[1]
+    let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
     //-----------Request Body Validation---------//
 
@@ -134,7 +140,7 @@ const createCart = async function (req, res) {
 
 //------------------------------------------------------  [ELEVENTH API]  -----------------------------------------------------------\\
 
-const updateReviews = async function (req, res) {
+const updateCrate = async function (req, res) {
   try {
     const { bookId, reviewId } = req.params;                         // Destructuring
     const { review, rating, reviewedBy } = req.body;                  // Destructuring
