@@ -27,9 +27,9 @@ route.put("/products/:productId" , updateProduct)
 route.delete("/products/:productId" , deleteProductsbyId)
 
 
-route.post("/users/:userId/cart" , createCart)
+route.post("/users/:userId/cart" ,authentication, createCart)
 
-route.put("/users/:userId/cart" , updateCrate)
+route.put("/users/:userId/cart" ,authentication, updateCrate)
 
 
 
