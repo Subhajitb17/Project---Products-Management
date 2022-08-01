@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require("bcrypt")
 const aws = require("../aws/s3")
 
-const { objectValue, nameRegex, keyValue, mobileRegex, emailRegex, passwordRegex, pincodeRegex, numberValue, isValidObjectId } = require("../middleware/validator"); // IMPORTING VALIDATORS
+const { objectValue, nameRegex, keyValue, mobileRegex, emailRegex, passwordRegex, pincodeRegex, isValidObjectId } = require("../middleware/validator"); // IMPORTING VALIDATORS
 
 
 
@@ -13,7 +13,8 @@ const { objectValue, nameRegex, keyValue, mobileRegex, emailRegex, passwordRegex
 
 const createUser = async (req, res) => {
     try {
-        let { fname, lname, email, phone, password, address } = req.body  // Destructuring
+        const address = req.body.address
+        let { fname, lname, email, phone, password } = req.body  // Destructuring
 
         // Request body validation => empty or not
         if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide details!" })
@@ -64,51 +65,25 @@ const createUser = async (req, res) => {
         const passwordHash = await bcrypt.hash(password, 10);
         password = passwordHash
 
-        // address pincode validation => should not start with "0"
-        //Address validation => address is mandatory
-        if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
 
-        try {
-            address = JSON.parse(address)
-        } catch (err) { return res.status(400).send({ status: false, message: "Pincode should not start with 0!" }) }
+        // Address validation => address is mandatory
+        if (address) {
+            if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
+        }
 
-        //shipping address is mandatory
+        // shipping address validation
         if (!objectValue(address.shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })
-        // shipping address street is mandatory
-        if (address.shipping.street) {
-            if (!objectValue(address.shipping.street)) return res.status(400).send({ status: false, message: "Please enter your street!" })
-        }
-        // shipping address city is mandatory
-        if (address.shipping.city) {
-            if (!objectValue(address.shipping.city)) return res.status(400).send({ status: false, message: "Please enter your city!" })
-        }
-        // shipping address Pincode is mandatory
-        if (address.shipping.pincode) {
-            if (!numberValue(address.shipping.pincode || address.shipping.pincode === "")) return res.status(400).send({ status: false, message: "Please enter your pincode!" })
-        }
-        //Pincode only contaion number and must have length equal to 6
-        if (address.shipping.pincode) {
-            if (!pincodeRegex(address.shipping.pincode || address.shipping.pincode === "")) return res.status(400).send({ status: false, message: "pincode is invalid!" })
-        }
+        if (!objectValue(address.shipping.street)) return res.status(400).send({ status: false, message: "Please enter your shipping street!" });
+        if (!objectValue(address.shipping.city)) return res.status(400).send({ status: false, message: "Please enter your shipping city!" });
+        if (!address.shipping.pincode || isNaN(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Please enter your shipping pincode!" });
+        if (!pincodeRegex(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Shipping pincode is invalid!" });
 
-        // Billing address street is mandatory
-        if (!objectValue(address.billing)) return res.status(400).send({ status: false, message: "Please enter billing your address!" })
-        // Billing address street is mandatory
-        if (address.billing.street) {
-            if (!objectValue(address.billing.street)) return res.status(400).send({ status: false, message: "Please enter your street!" })
-        }
-        // Billing address city is mandatory
-        if (address.billing.city) {
-            if (!objectValue(address.billing.city)) return res.status(400).send({ status: false, message: "Please enter your city!" })
-        }
-        // Billing address Pincode is mandatory
-        if (address.billing.pincode || address.billing.pincode === "") {
-            if (!numberValue(address.billing.pincode)) return res.status(400).send({ status: false, message: "Please enter your pincode!" })
-        }
-        //Pincode only contaion number and must have length equal to 6
-        if (address.billing.pincode || address.billing.pincode === "") {
-            if (!pincodeRegex(address.billing.pincode)) return res.status(400).send({ status: false, message: "pincode is invalid!" })
-        }
+        // billing address validation
+        if (!objectValue(address.billing)) return res.status(400).send({ status: false, message: "Please enter your billing address!" });
+        if (!objectValue(address.billing.street)) return res.status(400).send({ status: false, message: "Please enter your billing street!" });
+        if (!objectValue(address.billing.city)) return res.status(400).send({ status: false, message: "Please enter your billing city!" });
+        if (!address.billing.pincode || isNaN(address.billing.pincode)) return res.status(400).send({ status: false, message: "Please enter your billing pincode!" });
+        if (!pincodeRegex(address.billing.pincode)) return res.status(400).send({ status: false, message: "Billing pincode is invalid!" });
 
         let users = { fname, lname, email, profileImage, phone, password, address } // Destructuring
 
@@ -144,7 +119,7 @@ const loginUser = async function (req, res) {
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })
         //Password must be 8-50 characters 
         if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters and in alphabets and numbers only!" })                      // 8th V used here
-        
+
         //Email Validation => checking from DB that email present in DB or not
         let user = await userModel.findOne({ email: email })
         if (!user) return res.status(400).send({ status: false, message: "email is not present in the Database!" })
@@ -153,7 +128,7 @@ const loginUser = async function (req, res) {
         let passwordCheck = await bcrypt.compare(req.body.password, user.password)
         //request body password and bcrypt hash password not match
         if (!passwordCheck) return res.status(400).send({ status: false, message: "password is not correct!" })
-        
+
         //Bad Request => Email or password is invalid 
         if (!user) { return res.status(404).send({ status: false, message: "email or the password is invalid!" }) }
 
@@ -222,12 +197,6 @@ const updateUserDetails = async function (req, res) {
         let { address, fname, lname, email, phone, password, profileImage } = req.body;  // Destructuring
 
 
-        // if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide something to update!" }); // 3rd V used here
-        //the above validation not neeeded
-
-        // let profileImage
-
-        // if(profileImage){ 
         //upload book cover(a file) by aws
         let files = req.files
         let uploadFileURL;
@@ -273,58 +242,24 @@ const updateUserDetails = async function (req, res) {
 
 
 
-        if (address) {                              // Nested If used here
-            try { address = JSON.parse(address) }
-            catch (err) { return res.status(400).send({ status: false, message: "Pincode should not start from 0!" }) }
-            if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter address!" })
-            // 2nd V used above
-
-            if (address.shipping) {
-                if (!objectValue(address.shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })   // 3rd V used here
-
-                if (address.shipping.street) {
-                    if (!objectValue(address.shipping.street)) return res.status(400).send({ status: false, message: "Please enter your street!" }) // 2nd V used here
-                }
-
-                if (address.shipping.city) {
-                    if (!objectValue(address.shipping.city)) return res.status(400).send({ status: false, message: "Please enter your city!" })
-                    // 2nd V used above
-                }
-
-                if (address.shipping.pincode) {
-                    if (!numberValue(address.shipping.pincode || address.shipping.pincode === "")) return res.status(400).send({ status: false, message: "Please enter your pincode!" })
-                    // 15th V used above
-                }
-
-                if (address.shipping.pincode) {
-                    if (!pincodeRegex(address.shipping.pincode || address.shipping.pincode === "")) return res.status(400).send({ status: false, message: "pincode is invalid!" })
-                    // 9th V used above
-                }
-            }
-
-            if (address.billing) {
-                if (!objectValue(address.billing)) return res.status(400).send({ status: false, message: "Please enter billing your address!" })   // 3rd V used here
-
-                if (address.billing.street) {
-                    if (!objectValue(address.billing.street)) return res.status(400).send({ status: false, message: "Please enter your street!" }) // 2nd V used here
-                }
-
-                if (address.billing.city) {
-                    if (!objectValue(address.billing.city)) return res.status(400).send({ status: false, message: "Please enter your city!" })
-                    // 2nd V used above
-                }
-
-                if (address.billing.pincode || address.billing.pincode === "") {
-                    if (!numberValue(address.billing.pincode)) return res.status(400).send({ status: false, message: "Please enter your pincode!" })
-                    // 15th V used above
-                }
-
-                if (address.billing.pincode || address.billing.pincode === "") {
-                    if (!pincodeRegex(address.billing.pincode)) return res.status(400).send({ status: false, message: "pincode is invalid!" })
-                    // 9th V used above
-                }
-            }
+         // Address validation => address is mandatory
+        if (address) {
+            if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
         }
+
+        // shipping address validation
+        if (!objectValue(address.shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })
+        if (!objectValue(address.shipping.street)) return res.status(400).send({ status: false, message: "Please enter your shipping street!" });
+        if (!objectValue(address.shipping.city)) return res.status(400).send({ status: false, message: "Please enter your shipping city!" });
+        if (!address.shipping.pincode || isNaN(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Please enter your shipping pincode!" });
+        if (!pincodeRegex(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Shipping pincode is invalid!" });
+
+        // billing address validation
+        if (!objectValue(address.billing)) return res.status(400).send({ status: false, message: "Please enter your billing address!" });
+        if (!objectValue(address.billing.street)) return res.status(400).send({ status: false, message: "Please enter your billing street!" });
+        if (!objectValue(address.billing.city)) return res.status(400).send({ status: false, message: "Please enter your billing city!" });
+        if (!address.billing.pincode || isNaN(address.billing.pincode)) return res.status(400).send({ status: false, message: "Please enter your billing pincode!" });
+        if (!pincodeRegex(address.billing.pincode)) return res.status(400).send({ status: false, message: "Billing pincode is invalid!" });
 
         const updatedUserDetails = await userModel.findOneAndUpdate(
             { _id: userId },

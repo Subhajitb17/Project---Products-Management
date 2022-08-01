@@ -1,7 +1,7 @@
 const productModel = require("../models/productModel");
 const cartModel = require("../models/cartModel")
 const userModel = require("../models/userModel")
-const { objectValue, keyValue, numberValue, isValidObjectId, strRegex } = require("../middleware/validator");  // IMPORTING VALIDATORS
+const { objectValue, keyValue, numberValue, isValidObjectId, strRegex, numberValue2 } = require("../middleware/validator");  // IMPORTING VALIDATORS
 
 
 //-----------------------------------------------------  TENTH API  ----------------------------------------------------------------\\
@@ -13,47 +13,46 @@ const createCart = async (req, res) => {
   try {
 
     const userId = req.params.userId
-
     if (!isValidObjectId(userId)) return res.status(400).send({ status: false, msg: "userId is invalid!" })  // 1st V used here
+    let duplicateUserId = await userModel.findById(userId)
+    if (!duplicateUserId) return res.status(400).send({ status: false, message: "userId is not present in DB!" })
 
-    const findUserbyId = await productModel.findOne({ userId, isDeleted: false })      // DB Call
-
-    if (!findUserbyId) { return res.status(404).send({ status: false, msg: "User not found or does not exist!" }) } // DB Validation
-
-    let { review, rating, reviewedBy } = req.body   // Destructuring
+    let {cartId, productId, quantity, totalPrice, totalItems } = req.body   // Destructuring
 
     if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide details!" })   // 3rd V used here
 
-    if (!objectValue(review)) return res.status(400).send({ status: false, msg: "Please enter valid review!" })          // 2nd V used here
-    
-    if (!numberValue(rating)) return res.status(400).send({ status: false, msg: "Please enter rating in correct format!" }) //15th V used here
-
-    if (!ratingRegex(rating)) return res.status(400).send({ status: false, msg: "rating is invalid!" })   // 10th V used here
-
-    if(reviewedBy === "") {reviewedBy = "Guest" }
-
-    if (reviewedBy) {     // Nested If used here
-      if (!objectValue(reviewedBy)) return res.status(400).send({ status: false, msg: "Please enter reviewer's name!" }) 
-           // 2nd V used above
-      if (!strRegex(reviewedBy)) return res.status(400).send({ status: false, msg: "Please enter reviewer's name correctly!" })             // 11th V used above
-    } 
-
-    const reviewData = { bookId, review, rating, reviewedBy, reviewedAt }   // Destructuring
-
-    const reviewCreation = await reviewModel.create(reviewData)
-
-    if (reviewCreation) {
-      findBooksbyId.reviews = findBooksbyId.reviews + 1;     // Increasing the review count by 1
-
-      await booksModel.findOneAndUpdate({ _id: bookId, isDeleted: false }, { $set: { reviews: findBooksbyId.reviews } })
- 
-      
+    if(cartId) {
+      if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, msg: "cartId is invalid!" })  // 1st V used here
+      findCartById = await cartModel.findOne({_id: cartId, userId: userId})
+      if (!findCartById) { return res.status(404).send({ status: false, msg: "Cart not found!" }) } // DB Validation
     }
+     
+    if (!isValidObjectId(productId)) return res.status(400).send({ status: false, msg: "productId is invalid!" })  // 1st V used here
+    const findProductById = await productModel.findOne({_id: productId, isDeleted: false })      // DB Call
+    if (!findProductById) { return res.status(404).send({ status: false, msg: "Product not found or does not exist!" }) } // DB Validation
 
-    res.status(201).send({ status: true, message: 'Success', data: findBooksbyId, reviewData :reviewCreation })
+
+    if (!numberValue2(quantity)) return res.status(400).send({ status: false, msg: "Please enter valid quantity!" })          // 2nd V used here
+    if (quantity < 1) return res.status(400).send({ status: false, msg: "Quantity cannot be less than 1!" }) 
+    
+    if (!numberValue2(totalPrice)) return res.status(400).send({ status: false, msg: "Please enter totalPrice in correct format!" }) //15th V used here
+
+    if (!numberValue2(totalItems)) return res.status(400).send({ status: false, msg: "Please enter totalItems in correct format!" }) //15th V used here
+
+    const cartItems = { userId:userId, items: [{productId:productId, quantity:quantity}], totalPrice:totalPrice, totalItems:totalItems }   // Destructuring
+
+    const cartCreation = await cartModel.create(cartItems)
+
+    // if (reviewCreation) {
+    //   findBooksbyId.reviews = findBooksbyId.reviews + 1;     // Increasing the review count by 1
+
+      // await booksModel.findOneAndUpdate({ _id: bookId, isDeleted: false }, { $set: { reviews: findBooksbyId.reviews } })
+ 
+    // }
+
+    res.status(201).send({ status: true, message: 'Success', data: cartCreation })
 
   }
-
   catch (error) {
     res.status(500).send({ status: false, msg: error.message })
   }
@@ -137,4 +136,4 @@ const deleteReviewbyId = async (req, res) => {
   }
 }
 
-module.exports = { createReviews, updateReviews, deleteReviewbyId }  // Destructuring
+module.exports = { createCart }  // Destructuring

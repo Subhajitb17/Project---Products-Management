@@ -13,6 +13,8 @@ const isValidObjectId = (objectId) => {
 const objectValue = (value) => {
   if (typeof value === "undefined" || value === null || typeof value === "boolean" || typeof value === "number") return false;
   if (typeof value === "string" && value.trim().length === 0) return false;
+  if (typeof value === "object" && Object.keys(value).length === 0) return false;
+
   return true;
 };
 
@@ -57,7 +59,7 @@ const passwordRegex = (value) => {
 // 8th Validator ==>
 
 const pincodeRegex = (value) => {
-  let pincodeRegex = /^[1-9][0-9]{5}$/;
+  let pincodeRegex = /^[1-9]{1}[0-9]{5}$/;
   if (pincodeRegex.test(value))
     return true;
 }
@@ -113,14 +115,14 @@ const urlRegex = (value) => {
     return true;
 }
 
-// // 15th Validator ==>
+// 15th Validator ==>
 
-// const currencyRegex = (value) => {
-//   let currencyRegex = /[\u00a4\u060b\u0e3f\u002f\u002e\u20bf\u20b5\u00a2\u20a1\u0024\u0434\u0435\u043d\u0438\u043d\u0024\u20ab\u20ac\u0192\u002c\u20b2\u20b4\u20ad\u010d\u043b\u0432\u20ba\u20a5\u20a6\u0024\u20b1\u00a3\u17db\u20bd\u20b9\u20a8\u20aa\u09f3\u20ae\u20a9\u00a5\u0142\u20b3\u20a2\u20b0\u20bb\u20af\u20a0\u20a4\u2133\u20a7\u211b\u20b7\u20b6\u09f2\u09f9\u09fb\u07fe\u07ff\u0bf9\u0af1\u0cb0\u0dbb\u0dd4\ua838\u1e2f\u0046\u0061-\u007a\u0041-\u005a\u0030-\u0039\u2000-\u200f\u2028-\u202f\u0621-\u0628\u062a-\u063a\u0641-\u0642\u0644-\u0648\u064e-\u0651\u0655\u067e\u0686\u0698\u06a9\u06af\u06be\u06cc\u06f0-\u06f9\u0629\u0643\u0649-\u064b\u064d\u06d5\u0660-\u0669\u005c]{1,5}/;
-//   if (currencyRegex.test(value))
-//     return true;
-// }
+const numberValue2 = (value) => {
+  if (typeof value === "undefined" || value === null || typeof value === "boolean" || typeof value === "string") return false;
+  if (typeof value === "number" && value.toString().trim().length === 0) return false
+  return true;
+};
 
 
-module.exports = { isValidObjectId, objectValue, nameRegex, emailRegex, keyValue, mobileRegex, passwordRegex, pincodeRegex, isValidArray, booleanValue, numberValue, isValidDate, strRegex, urlRegex };     // EXPORTING THEM
+module.exports = { isValidObjectId, objectValue, nameRegex, emailRegex, keyValue, mobileRegex, passwordRegex, pincodeRegex, isValidArray, booleanValue, numberValue, isValidDate, strRegex, urlRegex, numberValue2 };     // EXPORTING THEM
                                                                                                         
