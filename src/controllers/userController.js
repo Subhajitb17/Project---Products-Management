@@ -6,42 +6,37 @@ const aws = require("../aws/s3")
 const { objectValue, nameRegex, keyValue, mobileRegex, emailRegex, passwordRegex, pincodeRegex, numberValue, isValidObjectId } = require("../middleware/validator"); // IMPORTING VALIDATORS
 
 
-//--------------------------------------------------- [FIRST API] ------------------------------------------------------------\\
 
-
-// V = Validator 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////       CREATE    USER     API      //////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const createUser = async (req, res) => {
     try {
         let { fname, lname, email, phone, password, address } = req.body  // Destructuring
 
-        if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide details!" })  // 3rd V used here
+        // Request body validation => empty or not
+        if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide details!" })
 
-        if (!objectValue(fname)) return res.status(400).send({ status: false, message: "Please enter title!" }) // 2nd V used here
+        //first name validation => first name is mandatory
+        if (!objectValue(fname)) return res.status(400).send({ status: false, message: "Please enter first name!" })
+        //first name must be in alphabate
+        if (!nameRegex(fname)) return res.status(400).send({ status: false, message: "first name is invalid!" })
 
-        // if (!isValidTitle(fname)) return res.status(400).send({ status: false, message: "Title must be Mr/Mrs/Miss" })  // 5th V used here
+        //last name validation => last name is mandatory
+        if (!objectValue(lname)) return res.status(400).send({ status: false, message: "Please enter last name!" })
+        //last name must  be in alphabate
+        if (!nameRegex(lname)) return res.status(400).send({ status: false, message: "last name is invalid!" })
 
-        if (!objectValue(lname)) return res.status(400).send({ status: false, message: "Please enter name!" })  // 2nd V used here
-
-        if (!nameRegex(lname)) return res.status(400).send({ status: false, message: "name is invalid!" })  // 4th V used here
-
-        if (!objectValue(phone)) return res.status(400).send({ status: false, message: "Please enter phone number!" })  // 2nd V used here
-
-        if (!mobileRegex(phone)) return res.status(400).send({ status: false, message: "phone number is invalid!" })  // 7th V used here
-
-        let duplicatePhone = await userModel.findOne({ phone })        // DB Call
-
-        if (duplicatePhone) return res.status(400).send({ status: false, message: "phone number is already registered!" }) //Duplicate Validation 
-
-        if (!objectValue(email)) return res.status(400).send({ status: false, message: "Please enter email!" })   // 2nd V used here
-
-        if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })    // 6th V used here
-
+        //Email validation => Email is mandatory
+        if (!objectValue(email)) return res.status(400).send({ status: false, message: "Please enter email!" })
+        //Email must be a valid email address 
+        if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })
+        // Email must be unique => checking from DB that email already registered or not
         let duplicateEmail = await userModel.findOne({ email })
+        if (duplicateEmail) return res.status(400).send({ status: false, message: "email is already registered!" })
 
-        if (duplicateEmail) return res.status(400).send({ status: false, message: "email is already registered!" })  // Duplicate Validation
-
-        //upload book cover(a file) by aws
+        //upload Profile Image(a file) by aws in S3
         let files = req.files
         let uploadFileURL;
         if (files && files.length > 0) {
@@ -50,67 +45,76 @@ const createUser = async (req, res) => {
         else {
             return res.status(400).send({ status: false, message: "Please add profile image" })
         }
-        //aws-url
+        //aws-url of S3
         let profileImage = uploadFileURL
 
-        if (!objectValue(password)) return res.status(400).send({ status: false, message: "Please enter password!" })  // 2nd V used here
+        //phone number validation => phone is number mandatory
+        if (!objectValue(phone)) return res.status(400).send({ status: false, message: "Please enter phone number!" })
+        //phone number must be a valid indian phone number
+        if (!mobileRegex(phone)) return res.status(400).send({ status: false, message: "phone number is invalid!" })
+        //phone must must be unique => checking from DB that phone number already registered or not
+        let duplicatePhone = await userModel.findOne({ phone })
+        if (duplicatePhone) return res.status(400).send({ status: false, message: "phone number is already registered!" })
 
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters!" })                      // 8th V used here
-
+        //Password validation => password is mandatory
+        if (!objectValue(password)) return res.status(400).send({ status: false, message: "Please enter password!" })
+        //Password must be 8-50 characters 
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters and in alphabets and numbers only!" })
+        //creating hash password by using bcrypt
         const passwordHash = await bcrypt.hash(password, 10);
         password = passwordHash
 
-        try{  address = JSON.parse(address)  } 
-        catch(err) {return res.status(400).send({status: false , message: "Pincode should not start from 0!"})}  
+        // address pincode validation => should not start with "0"
+        //Address validation => address is mandatory
+        if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
 
-        if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })   // 3rd V used here
+        try {
+            address = JSON.parse(address)
+        } catch (err) { return res.status(400).send({ status: false, message: "Pincode should not start with 0!" }) }
 
-        if (!objectValue(address.shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })   // 3rd V used here
-
+        //shipping address is mandatory
+        if (!objectValue(address.shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })
+        // shipping address street is mandatory
         if (address.shipping.street) {
-            if (!objectValue(address.shipping.street)) return res.status(400).send({ status: false, message: "Please enter your street!" }) // 2nd V used here
+            if (!objectValue(address.shipping.street)) return res.status(400).send({ status: false, message: "Please enter your street!" })
         }
-
+        // shipping address city is mandatory
         if (address.shipping.city) {
             if (!objectValue(address.shipping.city)) return res.status(400).send({ status: false, message: "Please enter your city!" })
-            // 2nd V used above
         }
-
+        // shipping address Pincode is mandatory
         if (address.shipping.pincode) {
             if (!numberValue(address.shipping.pincode || address.shipping.pincode === "")) return res.status(400).send({ status: false, message: "Please enter your pincode!" })
-            // 15th V used above
         }
-
+        //Pincode only contaion number and must have length equal to 6
         if (address.shipping.pincode) {
             if (!pincodeRegex(address.shipping.pincode || address.shipping.pincode === "")) return res.status(400).send({ status: false, message: "pincode is invalid!" })
-            // 9th V used above
-
-            if (!objectValue(address.billing)) return res.status(400).send({ status: false, message: "Please enter billing your address!" })   // 3rd V used here
-
-            if (address.billing.street) {
-                if (!objectValue(address.billing.street)) return res.status(400).send({ status: false, message: "Please enter your street!" }) // 2nd V used here
-            }
-
-            if (address.billing.city) {
-                if (!objectValue(address.billing.city)) return res.status(400).send({ status: false, message: "Please enter your city!" })
-                // 2nd V used above
-            }
-
-            if (address.billing.pincode || address.billing.pincode === "") {
-                if (!numberValue(address.billing.pincode)) return res.status(400).send({ status: false, message: "Please enter your pincode!" })
-                // 15th V used above
-            }
-
-            if (address.billing.pincode || address.billing.pincode === "") {
-                if (!pincodeRegex(address.billing.pincode)) return res.status(400).send({ status: false, message: "pincode is invalid!" })
-                // 9th V used above
-            }
         }
 
-        let users = { fname, lname, email, profileImage, phone, password, address }
+        // Billing address street is mandatory
+        if (!objectValue(address.billing)) return res.status(400).send({ status: false, message: "Please enter billing your address!" })
+        // Billing address street is mandatory
+        if (address.billing.street) {
+            if (!objectValue(address.billing.street)) return res.status(400).send({ status: false, message: "Please enter your street!" })
+        }
+        // Billing address city is mandatory
+        if (address.billing.city) {
+            if (!objectValue(address.billing.city)) return res.status(400).send({ status: false, message: "Please enter your city!" })
+        }
+        // Billing address Pincode is mandatory
+        if (address.billing.pincode || address.billing.pincode === "") {
+            if (!numberValue(address.billing.pincode)) return res.status(400).send({ status: false, message: "Please enter your pincode!" })
+        }
+        //Pincode only contaion number and must have length equal to 6
+        if (address.billing.pincode || address.billing.pincode === "") {
+            if (!pincodeRegex(address.billing.pincode)) return res.status(400).send({ status: false, message: "pincode is invalid!" })
+        }
 
+        let users = { fname, lname, email, profileImage, phone, password, address } // Destructuring
+
+        //Create user and store in DB
         const userCreation = await userModel.create(users)
-
+        //successfull creation of a new user response
         res.status(201).send({ status: true, message: 'Success', data: userCreation })
     }
     catch (error) {
@@ -119,33 +123,46 @@ const createUser = async (req, res) => {
 
 } 
 
-//-----------------------------------------------------  [SECOND API]  -------------------------------------------------------\\
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////       LOGIN    USER     API       //////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const loginUser = async function (req, res) { 
     try {
         let { email, password } = req.body  // Destructuring
 
-        if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide email and password!" })  // 3rd V used here
+        // Request body validation => empty or not
+        if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide email and password!" })
 
-        let user = await userModel.findOne({ email: email })    // DB Call
+        //Email is mandatory for login
+        if (!objectValue(email)) return res.status(400).send({ status: false, message: "email is not present!" })
+        //Email must be a valid email address
+        if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })
+
+        //Password validation => Password is mandatory for login
+        if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })
+        //Password must be 8-50 characters 
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters and in alphabets and numbers only!" })                      // 8th V used here
+        
+        //Email Validation => checking from DB that email present in DB or not
+        let user = await userModel.findOne({ email: email })
         if (!user) return res.status(400).send({ status: false, message: "email is not present in the Database!" })
 
-        if (!objectValue(email)) return res.status(400).send({ status: false, message: "email is not present!" })    // Email Validation
-        if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })    // 6th V used here 
-
-        if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })   // Passsword Validation
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters long!" })                      // 8th V used here
-
+        //password check by comparing request body password and the password from bcrypt hash password
         let passwordCheck = await bcrypt.compare(req.body.password, user.password)
-        if (!passwordCheck) return res.status(400).send({ status: false, message: "password is not correct!" })   // Passsword Validation  //take this above 
-
+        //request body password and bcrypt hash password not match
+        if (!passwordCheck) return res.status(400).send({ status: false, message: "password is not correct!" })
+        
+        //Bad Request => Email or password is invalid 
         if (!user) { return res.status(404).send({ status: false, message: "email or the password is invalid!" }) }
 
-
-        let token = jwt.sign(                         // JWT Creation
+        //Create Token by jsonwebtoken
+        let token = jwt.sign(
             {
+                //Payload
                 userId: user._id.toString(),
-                group: "seventy-three",                                      // Payload
+                group: "seventy-three",
                 project: "ProductsManagement",
                 iat: Math.floor(Date.now() / 1000),
                 exp: Math.floor(Date.now() / 1000) + 480 * 60 * 60
@@ -153,6 +170,7 @@ const loginUser = async function (req, res) {
             "group73-project5"              // Secret Key 
         )
 
+        //for successfull login return response userId with generated token to body
         return res.status(201).send({ status: true, data: { userId: user._id, token } })
     }
     catch (err) {
@@ -202,10 +220,10 @@ const updateUserDetails = async function (req, res) {
         if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }   // DB Validation
 
         let { address, fname, lname, email, phone, password, profileImage } = req.body;  // Destructuring
-        
+
 
         // if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide something to update!" }); // 3rd V used here
-                    //the above validation not neeeded
+        //the above validation not neeeded
 
         // let profileImage
 
@@ -219,7 +237,7 @@ const updateUserDetails = async function (req, res) {
         }
         //aws-url
 
-        if (!(fname || lname || email || phone || password || address || profileImage )) return res.status(400).send({ status: false, message: "Please input valid params to update!" });
+        if (!(fname || lname || email || phone || password || address || profileImage)) return res.status(400).send({ status: false, message: "Please input valid params to update!" });
 
         if (fname) {       // Nested If used here
             if (!objectValue(fname)) return res.status(400).send({ status: false, message: "Please enter first name!" })
@@ -253,11 +271,11 @@ const updateUserDetails = async function (req, res) {
             password = passwordHash
         }
 
-       
+
 
         if (address) {                              // Nested If used here
-          try{  address = JSON.parse(address)  } 
-          catch(err) {return res.status(400).send({status: false , message: "Pincode should not start from 0!"})}      
+            try { address = JSON.parse(address) }
+            catch (err) { return res.status(400).send({ status: false, message: "Pincode should not start from 0!" }) }
             if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter address!" })
             // 2nd V used above
 
@@ -310,7 +328,7 @@ const updateUserDetails = async function (req, res) {
 
         const updatedUserDetails = await userModel.findOneAndUpdate(
             { _id: userId },
-            { $set: {  fname, lname, email, phone, password, address, profileImage } },
+            { $set: { fname, lname, email, phone, password, address, profileImage } },
             { new: true }
         );
         return res.status(200).send({ status: true, message: 'Success', data: updatedUserDetails });

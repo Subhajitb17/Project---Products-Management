@@ -1,11 +1,10 @@
 const express = require("express")
 const route = express.Router();
 const {createUser, loginUser, getUserDeatailsById, updateUserDetails} = require("../controllers/userController");
-const {createProduct} = require("../controllers/productController");
+const {createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId} = require("../controllers/productController");
 // const cartController = require("../controllers/cartController");
 // const orderController = require("../controllers/orderController");
 const {authentication} = require("../middleware/auth")
-const aws = require("../aws/s3")
 
 
 route.post("/register" , createUser)
@@ -18,6 +17,16 @@ route.put("/user/:userId/profile" , authentication, updateUserDetails)
 
 
 route.post("/products" , createProduct) 
+
+route.get("/products" , getProducts)
+
+route.get("/products/:productId" , getProductsbyId)
+
+route.put("/products/:productId" , updateProduct)
+
+route.delete("/products/:productId" , deleteProductsbyId)
+
+
 
 
 
