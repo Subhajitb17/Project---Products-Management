@@ -154,23 +154,35 @@ const loginUser = async function (req, res) {
     }
 }
 
-//-----------------------------------------------------  [THIRD API]  -------------------------------------------------------\\
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////       GET    USER     DETAILS     BY       ID      API       ////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const getUserDeatailsById = async (req, res) => {
 
     try {
+        //request userId from path params
         const userId = req.params.userId
 
-        if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }    // 1st V used here
+        //UserId valid ObjectId or not
+        if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }
 
+        //Authorization Validation
+        //request bearer token from header for authorization
         let bearerToken = req.headers.authorization;
+        //split bearerToken
         let token = bearerToken.split(" ")[1]
-        let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+        //decoded token to verify with secrect key
+        let decodedToken = jwt.verify(token, "group73-project5")
+        //userId from token and userId from params not match
         if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-        let findUsersbyId = await userModel.findOne({ _id: userId })    // DB Call
-        if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }   // DB Validation
+        //DB Call => find userId from userModel
+        let findUsersbyId = await userModel.findOne({ _id: userId })
+        //user not found in DB
+        if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }
 
+        //Successfull execution response with userDetails
         res.status(200).send({ status: true, data: findUsersbyId })
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message });
@@ -242,7 +254,7 @@ const updateUserDetails = async function (req, res) {
 
 
 
-         // Address validation => address is mandatory
+        // Address validation => address is mandatory
         if (address) {
             if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
         }
