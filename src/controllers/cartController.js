@@ -198,6 +198,7 @@ const updateCrate = async function (req, res) {
     return res.status(500).send({ status: false, message: err.message });
   }
 };
+
 //----------------------------------------------------  [TWELVETH API]  ------------------------------------------------------------\\
 
 const getCartDetails = async (req, res) => {
