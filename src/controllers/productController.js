@@ -11,7 +11,7 @@ const createProduct = async (req, res) => {
   try {
     const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments, isDeleted } = req.body  // Destructuring
 
-    if (!keyValue(req.body)) return res.status(400).send({ status: false, msg: "Please provide details!" })  // 3rd V used here
+    if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide details!" })  // 3rd V used here
 
     //upload book cover(a file) by aws
     let files = req.files
@@ -25,39 +25,39 @@ const createProduct = async (req, res) => {
     //aws-url
     let productImage = uploadFileURL
 
-    if (!objectValue(title)) return res.status(400).send({ status: false, msg: "Please enter title!" })  // 2nd V used here
-    if (!strRegex(title)) return res.status(400).send({ status: false, msg: "Please enter title in alphabets only!" })  // 2nd V used here
+    if (!objectValue(title)) return res.status(400).send({ status: false, message: "Please enter title!" })  // 2nd V used here
+    if (!strRegex(title)) return res.status(400).send({ status: false, message: "Please enter title in alphabets only!" })  // 2nd V used here
 
     let duplicateTitle = await productModel.findOne({ title })        // DB Call
-    if (duplicateTitle) return res.status(400).send({ status: false, msg: "title is already in use!" })   // Duplicate Validation
+    if (duplicateTitle) return res.status(400).send({ status: false, message: "title is already in use!" })   // Duplicate Validation
 
-    if (!objectValue(description)) return res.status(400).send({ status: false, msg: "Please enter description!" })  // 2nd V used here
+    if (!objectValue(description)) return res.status(400).send({ status: false, message: "Please enter description!" })  // 2nd V used here
 
 
-    if (!price) return res.status(400).send({ status: false, msg: "Please enter price!" })
+    if (!price) return res.status(400).send({ status: false, message: "Please enter price!" })
     // 2nd V used here
     if (price) {
-      if (!numberValue(price)) return res.status(400).send({ status: false, msg: "Please enter price!" })
+      if (!numberValue(price)) return res.status(400).send({ status: false, message: "Please enter price!" })
     }
 
     if (currencyId) {
-      if (!objectValue(currencyId)) return res.status(400).send({ status: false, msg: "Please enter currencyId!" })
+      if (!objectValue(currencyId)) return res.status(400).send({ status: false, message: "Please enter currencyId!" })
       // 2nd V used here
-      if (currencyId !== "INR") return res.status(400).send({ status: false, msg: "Please enter currencyId in correct format!" })
+      if (currencyId !== "INR") return res.status(400).send({ status: false, message: "Please enter currencyId in correct format!" })
     }
 
     if (currencyFormat) {
-      if (!objectValue(currencyFormat)) return res.status(400).send({ status: false, msg: "Please enter currencyFormat!" })
+      if (!objectValue(currencyFormat)) return res.status(400).send({ status: false, message: "Please enter currencyFormat!" })
       // 2nd V used here
-      if (currencyFormat !== "₹") return res.status(400).send({ status: false, msg: "Please enter currencyFormat in correct format!" })
+      if (currencyFormat !== "₹") return res.status(400).send({ status: false, message: "Please enter currencyFormat in correct format!" })
     }
 
-    if (isFreeShipping || isFreeShipping === "") { if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, msg: "Please enter isFreeShipping!" }) }  // 2nd V used here
+    if (isFreeShipping || isFreeShipping === "") { if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, message: "Please enter isFreeShipping!" }) }  // 2nd V used here
 
 
     // Validation For availableSizes
-    let availableSize 
-    if (!availableSizes) return res.status(400).send({ status: false, msg: "Please enter atleast one available size!" })
+    let availableSize
+    if (!availableSizes) return res.status(400).send({ status: false, message: "Please enter atleast one available size!" })
     if (availableSizes) {
       availableSize = availableSizes.toUpperCase().split(",")
       console.log(availableSize);  // Creating an array
@@ -71,14 +71,14 @@ const createProduct = async (req, res) => {
     }
 
     if (style) {
-      if (!objectValue(style)) return res.status(400).send({ status: false, msg: "Please enter style!" })
+      if (!objectValue(style)) return res.status(400).send({ status: false, message: "Please enter style!" })
     }  // 2nd V used here
 
     if (installments === "") {
-      if (!numberValue(installments)) return res.status(400).send({ status: false, msg: "Please enter installments!" })
+      if (!numberValue(installments)) return res.status(400).send({ status: false, message: "Please enter installments!" })
     }   // 2nd V used here
 
-    if (isDeleted === true || isDeleted === "") return res.status(400).send({ status: false, msg: "isDeleted must be false!" })  // Boolean Validation
+    if (isDeleted === true || isDeleted === "") return res.status(400).send({ status: false, message: "isDeleted must be false!" })  // Boolean Validation
 
     const products = { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSizes: availableSize, style, installments, isDeleted }
 
@@ -87,7 +87,7 @@ const createProduct = async (req, res) => {
     res.status(201).send({ status: true, message: 'Success', data: productCreation })
 
   } catch (error) {
-    res.status(500).send({ status: false, msg: error.message });
+    res.status(500).send({ status: false, message: error.message });
   }
 };
 
@@ -108,8 +108,8 @@ const getProducts = async (req, res) => {
     };
 
     if (name) {                // Nested If Else used here
-      if (!objectValue(name)) { return res.status(400).send({ status: false, msg: "Product name is invalid!" }) }  // 2nd V used here
-      if (!strRegex(name)) { return res.status(400).send({ status: false, msg: "Please enter Product name is alphabets only!" }) }  // 2nd V used here
+      if (!objectValue(name)) { return res.status(400).send({ status: false, message: "Product name is invalid!" }) }  // 2nd V used here
+      if (!strRegex(name)) { return res.status(400).send({ status: false, message: "Please enter Product name is alphabets only!" }) }  // 2nd V used here
       else { filter.title = name };
     }
 
@@ -122,13 +122,13 @@ const getProducts = async (req, res) => {
 
     const productList = await productModel.find(filter).sort({ price: 1 })
 
-    if (productList.length === 0) return res.status(400).send({ status: false, msg: "no product found!" })  // DB Validation
+    if (productList.length === 0) return res.status(400).send({ status: false, message: "no product found!" })  // DB Validation
 
     res.status(200).send({ status: true, message: 'Product list', data: productList })
 
   }
   catch (error) {
-    res.status(500).send({ status: false, msg: error.message });
+    res.status(500).send({ status: false, message: error.message });
   }
 };
 
@@ -136,15 +136,19 @@ const getProducts = async (req, res) => {
 
 const getProductsbyId = async (req, res) => {
 
-  const productId = req.params.productId
+  try {
+    const productId = req.params.productId
 
-  if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, msg: "productId is invalid!" }) }    // 1st V used here
+    if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, message: "productId is invalid!" }) }    // 1st V used here
 
-  const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })     // DB Call
-  if (!findProductsbyId) { return res.status(404).send({ status: false, msg: "Products not found or does not exist!" }) }   // DB Validation
+    const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })     // DB Call
+    if (!findProductsbyId) { return res.status(404).send({ status: false, message: "Products not found or does not exist!" }) }   // DB Validation
 
-  res.status(200).send({ status: true, message: 'Product Details', data: findProductsbyId })
+    res.status(200).send({ status: true, message: 'Product Details', data: findProductsbyId })
 
+  } catch (error) {
+    res.status(500).send({ status: false, message: error.message });
+  }
 }
 
 
@@ -156,16 +160,16 @@ const updateProduct = async function (req, res) {
   try {
     const productId = req.params.productId;
 
-    if (!isValidObjectId(productId)) return res.status(400).send({ status: false, msg: "productId is invalid!" })   // 1st V used here
+    if (!isValidObjectId(productId)) return res.status(400).send({ status: false, message: "productId is invalid!" })   // 1st V used here
 
     const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })            // DB Call
-    if (!findProductsbyId) { return res.status(404).send({ status: false, msg: "Products not found or does not exist!" }) }
+    if (!findProductsbyId) { return res.status(404).send({ status: false, message: "Products not found or does not exist!" }) }
 
 
 
     const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments } = req.query;  // Destructuring
 
-    if (!keyValue(req.query)) return res.status(400).send({ status: false, msg: "Please provide something to update!" }); // 3rd V used here
+    if (!keyValue(req.query)) return res.status(400).send({ status: false, message: "Please provide something to update!" }); // 3rd V used here
 
     //upload book cover(a file) by aws
     let files = req.files
@@ -177,34 +181,34 @@ const updateProduct = async function (req, res) {
     //aws-url
     let productImage = uploadFileURL
 
-    if (!(title || description || price || currencyId || currencyFormat || isFreeShipping || availableSizes || style || installments)) return res.status(400).send({ status: false, msg: "Please input valid params to update!" });
+    if (!(title || description || price || currencyId || currencyFormat || isFreeShipping || availableSizes || style || installments)) return res.status(400).send({ status: false, message: "Please input valid params to update!" });
 
     if (title || title === "") {          // Nested If used here
-      if (!objectValue(title)) return res.status(400).send({ status: false, msg: "Please enter title!" })
-      if (!strRegex(title)) return res.status(400).send({ status: false, msg: "Please enter title in Alphabets only!" })
+      if (!objectValue(title)) return res.status(400).send({ status: false, message: "Please enter title!" })
+      if (!strRegex(title)) return res.status(400).send({ status: false, message: "Please enter title in Alphabets only!" })
     }        // 2nd V used above
 
     let duplicateTitle = await productModel.findOne({ title })
-    if (duplicateTitle) return res.status(400).send({ status: false, msg: "Product name is already in use!" })    // Duplicate Validation
+    if (duplicateTitle) return res.status(400).send({ status: false, message: "Product name is already in use!" })    // Duplicate Validation
 
     if (description) {       // Nested If used here
-      if (!objectValue(description)) return res.status(400).send({ status: false, msg: "Please enter description!" })
+      if (!objectValue(description)) return res.status(400).send({ status: false, message: "Please enter description!" })
     }        // 2nd V used above
 
     if (price) {    // Nested If used here
-      if (!numberValue(price)) return res.status(400).send({ status: false, msg: "Please enter price correctly!" }) // 2nd V used here
+      if (!numberValue(price)) return res.status(400).send({ status: false, message: "Please enter price correctly!" }) // 2nd V used here
     }
 
     if (currencyId) {
-      if (!objectValue(currencyId)) return res.status(400).send({ status: false, msg: "Please enter currencyId!" })
+      if (!objectValue(currencyId)) return res.status(400).send({ status: false, message: "Please enter currencyId!" })
       // 2nd V used here
-      if (currencyId !== "INR") return res.status(400).send({ status: false, msg: "Please enter currencyId in correct format!" })
+      if (currencyId !== "INR") return res.status(400).send({ status: false, message: "Please enter currencyId in correct format!" })
     }
 
     if (currencyFormat) {
-      if (!objectValue(currencyFormat)) return res.status(400).send({ status: false, msg: "Please enter currencyFormat!" })
+      if (!objectValue(currencyFormat)) return res.status(400).send({ status: false, message: "Please enter currencyFormat!" })
       // 2nd V used here
-      if (currencyFormat !== "₹") return res.status(400).send({ status: false, msg: "Please enter currencyFormat in correct format!" })
+      if (currencyFormat !== "₹") return res.status(400).send({ status: false, message: "Please enter currencyFormat in correct format!" })
     }
 
     if (isFreeShipping) {
@@ -239,7 +243,7 @@ const updateProduct = async function (req, res) {
     return res.status(200).send({ status: true, message: 'Success', data: updatedProducts });
 
   } catch (err) {
-    return res.status(500).send({ status: false, msg: err.message });
+    return res.status(500).send({ status: false, message: err.message });
   }
 };
 
@@ -250,10 +254,10 @@ const deleteProductsbyId = async (req, res) => {
   try {
     const productId = req.params.productId
 
-    if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, msg: "productId is invalid!" }) }   // 1st V used here
+    if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, message: "productId is invalid!" }) }   // 1st V used here
 
     const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })    // DB Call
-    if (!findProductsbyId) { return res.status(404).send({ status: false, msg: "Products not found or does not exist!" }) }
+    if (!findProductsbyId) { return res.status(404).send({ status: false, message: "Products not found or does not exist!" }) }
 
     await productModel.findOneAndUpdate(
       { _id: productId, isDeleted: false },
@@ -262,7 +266,7 @@ const deleteProductsbyId = async (req, res) => {
 
     res.status(200).send({ status: true, message: "Product has been deleted successfully!" })
   } catch (err) {
-    return res.status(500).send({ status: false, msg: err.message });
+    return res.status(500).send({ status: false, message: err.message });
   }
 }
 

@@ -2,7 +2,7 @@ const express = require("express")
 const route = express.Router();
 const {createUser, loginUser, getUserDeatailsById, updateUserDetails} = require("../controllers/userController");
 const {createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId} = require("../controllers/productController");
-const {createCart, updateCrate} = require("../controllers/cartController");
+const {createCart, updateCrate, getCartDetails, deleteCart} = require("../controllers/cartController");
 // const orderController = require("../controllers/orderController");
 const {authentication} = require("../middleware/auth")
 
@@ -31,7 +31,9 @@ route.post("/users/:userId/cart" ,authentication, createCart)
 
 route.put("/users/:userId/cart" ,authentication, updateCrate)
 
+route.get("/users/:userId/cart" ,authentication, getCartDetails)
 
+route.delete("/users/:userId/cart" ,authentication, deleteCart)
 
 
 module.exports = route
