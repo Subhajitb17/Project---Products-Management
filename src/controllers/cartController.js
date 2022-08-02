@@ -134,7 +134,7 @@ const createCart = async function (req, res) {
 
 //------------------------------------------------------  [ELEVENTH API]  -----------------------------------------------------------\\
 
-const updateCrate = async function (req, res) {
+const updateCart = async function (req, res) {
   try {
 
     const userId = req.params.userId;
@@ -203,19 +203,19 @@ const updateCrate = async function (req, res) {
 
 const getCartDetails = async (req, res) => {
   try {
-    const cartId = req.params.cartId
+    const userId = req.params.userId
 
-    if (!isValidObjectId(cartId)) { return res.status(400).send({ status: false, message: "cartId is invalid!" }) }    // 1st V used here
-
-    const findCartById = await cartModel.findOne({ _id: cartId, isDeleted: false })     // DB Call
-    if (!findCartById) { return res.status(404).send({ status: false, message: "Cart not found or does not exist!" }) }   // DB Validation
+    if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }    // 1st V used here
 
     let bearerToken = req.headers.authorization;
     let token = bearerToken.split(" ")[1]
     let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
-    if (findCartById.userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
+    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-    res.status(200).send({ status: true, message: "Cart Details", data: findCartById })
+    const findCartOfUser = await cartModel.findOne({ userId: userId, isDeleted: false })     // DB Call
+    if (!findCartOfUser) { return res.status(404).send({ status: false, message: "Cart not found or does not exist!" }) }   // DB Validation
+  
+    res.status(200).send({ status: true, message: "Cart Details", data: findCartOfUser })
 
   } catch (error) {
     res.status(500).send({ status: false, message: error.message });
@@ -235,7 +235,7 @@ const deleteCart = async (req, res) => {
     let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
     if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-    const findCartOfUser = await cartModel.findOne({ _id: cartId, userId: userId, isDeleted: false })   // DB Call
+    const findCartOfUser = await cartModel.findOne({ userId: userId, isDeleted: false })   // DB Call
     if (!findCartOfUser) { return res.status(404).send({ status: false, message: "Cart not found or does not exist!" }) }
 
   if(findCartOfUser.totalItems === 0 && findCartOfUser.totalPrice === 0 ) {
@@ -254,4 +254,4 @@ const deleteCart = async (req, res) => {
 
 
 
-module.exports = { createCart, updateCrate, getCartDetails, deleteCart }  // Destructuring & Exporting
+module.exports = { createCart, updateCart, getCartDetails, deleteCart }  // Destructuring & Exporting
