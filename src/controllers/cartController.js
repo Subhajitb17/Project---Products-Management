@@ -208,12 +208,13 @@ const getCartDetails = async (req, res) => {
     if (!isValidObjectId(cartId)) { return res.status(400).send({ status: false, message: "cartId is invalid!" }) }    // 1st V used here
 
     const findCartById = await cartModel.findOne({ _id: cartId, isDeleted: false })     // DB Call
-    if (!findCartById) { return res.status(404).send({ status: false, message: "Cart not found or does not exist!" }) }   // DB Validation
 
     let bearerToken = req.headers.authorization;
     let token = bearerToken.split(" ")[1]
     let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
     if (findCartById.userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
+
+    if (!findCartById) { return res.status(404).send({ status: false, message: "Cart not found or does not exist!" }) }   // DB Validation
 
     res.status(200).send({ status: true, message: "Cart Details", data: findCartById })
 
