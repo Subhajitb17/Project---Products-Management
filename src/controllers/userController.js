@@ -253,7 +253,7 @@ const updateUserDetails = async function (req, res) {
         //email validation if present
         if (email) {
             //if key present then value must not be empty
-            if (!objectValue(email)) return res.status(400).send({ status: false, msg: "Please enter email!" })
+            if (!objectValue(email)) return res.status(400).send({ status: false, message: "Please enter email!" })
             // email is  valid email address or not  
             if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })
             //Unique Email Validation => checking from DB that email present in DB or not    
@@ -264,7 +264,7 @@ const updateUserDetails = async function (req, res) {
         //Phone number validation if present
         if (phone) {
             //if Key present then value must not be empty
-            if (!objectValue(phone)) return res.status(400).send({ status: false, msg: "Please enter email!" })
+            if (!objectValue(phone)) return res.status(400).send({ status: false, message: "Please enter email!" })
             // phone number is valid Indian phone number or not
             if (!mobileRegex(phone)) return res.status(400).send({ status: false, message: "phone number is invalid!" })
             //Unique phone number Validation => checking from DB that phone number present in DB or not 

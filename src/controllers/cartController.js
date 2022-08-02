@@ -58,9 +58,9 @@ const createCart = async function (req, res) {
         return res.status(400).send({ status: false, message: "Please provide valid cartId!" });
       }
 
-      let cartIsUnique = await cartModel.findOne({ _id: cartId, isDeleted: false })
+      let duplicateCart = await cartModel.findOne({ _id: cartId, isDeleted: false })
 
-      if (!cartIsUnique) {
+      if (!duplicateCart) {
         return res.status(400).send({ status: false, message: "cartId doesn't exists!" })
       }
     }
@@ -90,7 +90,7 @@ const createCart = async function (req, res) {
 
     if (findCartOfUser) {
 
-      let price = quantity * findProduct.price + findCartOfUser.totalPrice;
+      let price = findCartOfUser.totalPrice + quantity * findProduct.price;
 
       let arr = findCartOfUser.items;
 
@@ -152,18 +152,18 @@ const updateCrate = async function (req, res) {
 
     if (!isValidObjectId(productId)) return res.status(400).send({ status: false, message: "Please enter valid productId!" });
 
-    if (removeProduct != 1 && removeProduct != 0) return res.status(400).send({ status: false, message: "Please enter valid removeProduct value as 1 or 0!" });
+    if (removeProduct !== 1 || 0) return res.status(400).send({ status: false, message: "Please enter valid removeProduct value as 1 or 0!" });
 
-    let checkCartId = await cartModel.findById(cartId);
+    let findCartById = await cartModel.findById(cartId);
 
-    if (!checkCartId) return res.status(404).send({ status: false, message: "CartId doesnt exists!" });
+    if (!findCartById) return res.status(404).send({ status: false, message: "CartId doesnt exists!" });
 
-    let thisProduct = await productModel.findOne({ _id: productId, isDeleted: false, });
+    let findProductById = await productModel.findOne({ _id: productId, isDeleted: false, });
 
-    if (!thisProduct) return res.status(400).send({ status: false, message: "Product has been deleted or doesnt exists!" });
+    if (!findProductById) return res.status(400).send({ status: false, message: "Product has been deleted or does not exist!" });
 
     let update = {};
-    let product = checkCartId.items;
+    let product = findCartById.items;
     let quantity = 0;
 
     for (let i = 0; i < product.length; i++) {
@@ -178,16 +178,16 @@ const updateCrate = async function (req, res) {
 
       for (let i = 0; i < product.length; i++) {
         if (product[i].productId == productId) {
-          update.totalPrice = checkCartId.totalPrice - thisProduct.price * product[i].quantity;
-          update.totalItems = checkCartId.totalItems - 1;
+          update.totalPrice = findCartById.totalPrice - findProductById.price * product[i].quantity;
+          update.totalItems = findCartById.totalItems - 1;
           break;
         }
       }
     } else if (removeProduct == 1) {
       for (let i = 0; i < product.length; i++) {
         if (product[i].productId == productId) {
-          update[`items.${i}.quantity`] = checkCartId.items[i].quantity - 1;
-          update.totalPrice = checkCartId.totalPrice - thisProduct.price;
+          update[`items.${i}.quantity`] = findCartById.items[i].quantity - 1;
+          update.totalPrice = findCartById.totalPrice - findProductById.price;
           break;
         }
       }
@@ -198,36 +198,60 @@ const updateCrate = async function (req, res) {
     return res.status(500).send({ status: false, message: err.message });
   }
 };
+
 //----------------------------------------------------  [TWELVETH API]  ------------------------------------------------------------\\
 
 const getCartDetails = async (req, res) => {
   try {
-    const bookId = req.params.bookId
-    const reviewId = req.params.reviewId;
+    const cartId = req.params.cartId
 
-    if (!isValidObjectId(bookId)) return res.status(400).send({ status: false, msg: "bookId is invalid!" })   // 1st V used here
-    if (!isValidObjectId(reviewId)) return res.status(400).send({ status: false, msg: "reviewId is invalid!" })  // 1st V used here
+    if (!isValidObjectId(cartId)) { return res.status(400).send({ status: false, message: "cartId is invalid!" }) }    // 1st V used here
 
-    const findBooksbyId = await booksModel.findOne({ _id: bookId, isDeleted: false })   // DB Call
-    if (!findBooksbyId) { return res.status(404).send({ status: false, msg: "Books not found or does not exist!" }) } // DB Validation
+    const findCartById = await cartModel.findOne({ _id: cartId, isDeleted: false })     // DB Call
+    if (!findCartById) { return res.status(404).send({ status: false, message: "Cart not found or does not exist!" }) }   // DB Validation
 
-    const findReview = await reviewModel.findOne({ _id: reviewId, isDeleted: false })    // DB Call
-    if (!findReview) { return res.status(404).send({ status: false, msg: "review not found or does not exist!" }) } // DB Validation
+    let bearerToken = req.headers.authorization;
+    let token = bearerToken.split(" ")[1]
+    let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+    if (findCartById.userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-    findBooksbyId.reviews = findBooksbyId.reviews - 1;        // Decreasing the review count by 1
+    res.status(200).send({ status: true, message: "Cart Details", data: findCartById })
 
-    await booksModel.findOneAndUpdate({ _id: bookId, isDeleted: false }, { $set: { reviews: findBooksbyId.reviews } });
-
-    await reviewModel.findOneAndUpdate(
-      { _id: reviewId, isDeleted: false },
-      { $set: { isDeleted: true, deletedAt: new Date() } })
-
-
-    return res.status(200).send({ status: true, message: "Review deleted successfully!", data: findBooksbyId });
-
-  } catch (err) {
-    return res.status(500).send({ status: false, msg: err.message });
+  } catch (error) {
+    res.status(500).send({ status: false, message: error.message });
   }
 }
 
-module.exports = { createCart, updateCrate }  // Destructuring
+//----------------------------------------------------  [THIRTHEEN API]  ------------------------------------------------------------\\
+
+const deleteCart = async (req, res) => {
+  try {
+    const userId = req.params.userId
+
+    if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }   // 1st V used here
+
+    let bearerToken = req.headers.authorization;
+    let token = bearerToken.split(" ")[1]
+    let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
+
+    const findCartOfUser = await cartModel.findOne({ _id: cartId, userId: userId, isDeleted: false })   // DB Call
+    if (!findCartOfUser) { return res.status(404).send({ status: false, message: "Cart not found or does not exist!" }) }
+
+  if(findCartOfUser.totalItems === 0 && findCartOfUser.totalPrice === 0 ) {
+     await cartModel.findOneAndUpdate(
+      { _id: cartId, isDeleted: false },
+      { $set: { isDeleted: true, deletedAt: new Date() } },
+      { new: true })
+    res.status(200).send({ status: true, message: "Cart has been deleted successfully!" })
+  } else {
+    res.status(400).send({ status: false, message: "Cart is not empty yet!" })
+  }
+  } catch (err) {
+    return res.status(500).send({ status: false, message: err.message });
+  }
+}
+
+
+
+module.exports = { createCart, updateCrate, getCartDetails, deleteCart }  // Destructuring & Exporting
