@@ -235,7 +235,7 @@ const deleteCart = async (req, res) => {
     let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
     if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-    const findCartOfUser = await cartModel.findOne({ userId: userId, isDeleted: false })   // DB Call
+    const findCartOfUser = await cartModel.findOne({ _id: cartId, userId: userId, isDeleted: false })   // DB Call
     if (!findCartOfUser) { return res.status(404).send({ status: false, message: "Cart not found or does not exist!" }) }
 
   if(findCartOfUser.totalItems === 0 && findCartOfUser.totalPrice === 0 ) {
