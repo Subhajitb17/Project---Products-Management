@@ -134,7 +134,7 @@ const createCart = async function (req, res) {
 
 //------------------------------------------------------  [ELEVENTH API]  -----------------------------------------------------------\\
 
-const updateCrate = async function (req, res) {
+const updateCart = async function (req, res) {
   try {
 
     const userId = req.params.userId;
@@ -254,4 +254,4 @@ const deleteCart = async (req, res) => {
 
 
 
-module.exports = { createCart, updateCrate, getCartDetails, deleteCart }  // Destructuring & Exporting
+module.exports = { createCart, updateCart, getCartDetails, deleteCart }  // Destructuring & Exporting

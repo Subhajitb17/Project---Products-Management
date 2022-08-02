@@ -2,7 +2,7 @@ const express = require("express")
 const route = express.Router();
 const {createUser, loginUser, getUserDeatailsById, updateUserDetails} = require("../controllers/userController");
 const {createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId} = require("../controllers/productController");
-const {createCart, updateCrate, getCartDetails, deleteCart} = require("../controllers/cartController");
+const {createCart, updateCart, getCartDetails, deleteCart} = require("../controllers/cartController");
 // const orderController = require("../controllers/orderController");
 const {authentication} = require("../middleware/auth")
 
@@ -29,7 +29,7 @@ route.delete("/products/:productId" , deleteProductsbyId)
 
 route.post("/users/:userId/cart" ,authentication, createCart)
 
-route.put("/users/:userId/cart" ,authentication, updateCrate)
+route.put("/users/:userId/cart" ,authentication, updateCart)
 
 route.get("/users/:userId/cart" ,authentication, getCartDetails)
 
