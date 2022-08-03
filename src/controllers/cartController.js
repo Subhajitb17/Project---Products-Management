@@ -20,7 +20,7 @@ const createCart = async function (req, res) {
     let bearerToken = req.headers.authorization;
     let token = bearerToken.split(" ")[1]
     let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
-    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
+    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }  
 
     //-----------Request Body Validation---------//
 
