@@ -287,42 +287,43 @@ const updateUserDetails = async function (req, res) {
         // Address validation => if key is present then value must not be empty
         if (address) {
             if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
-        
 
-        let Shipping = address.shipping
-        // shipping address validation
-       if(Shipping){ 
-        if (!objectValue(Shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })
-       }
-       if(Shipping.street){ 
-        if (!objectValue(Shipping.street)) return res.status(400).send({ status: false, message: "Please enter your shipping street!" });
-       }
-       if(Shipping.city){ 
-        if (!objectValue(Shipping.city)) return res.status(400).send({ status: false, message: "Please enter your shipping city!" });
-       }
-       if(Shipping.pincode){ 
-        if (!Shipping.pincode || isNaN(Shipping.pincode)) return res.status(400).send({ status: false, message: "Please enter your shipping pincode!" });
-        if (!pincodeRegex(Shipping.pincode)) return res.status(400).send({ status: false, message: "Shipping pincode is invalid!" });
-       }
-    
-       let Billing = address.billing 
 
-        // billing address validation
-        if(Billing){ 
-            if (!objectValue(Billing)) return res.status(400).send({ status: false, message: "Please enter your billing address!" })
-    }
-    if(Billing.street){ 
-        if (!objectValue(Billing.street)) return res.status(400).send({ status: false, message: "Please enter your billing street!" });
-    }
-    if(Billing.city){ 
-        if (!objectValue(Billing.city)) return res.status(400).send({ status: false, message: "Please enter your billing city!" });
-    }
-   
-    if(Billing.pincode){ 
-        if (!Billing.pincode || isNaN(Billing.pincode)) return res.status(400).send({ status: false, message: "Please enter your billing pincode!" });
-        if (!pincodeRegex(Billing.pincode)) return res.status(400).send({ status: false, message: "Billing pincode is invalid!" });
-       }
-    }
+
+            // shipping address validation
+            if (address.shipping) {
+                let Shipping = address.shipping
+                if (!objectValue(Shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })
+                if (Shipping.street) {
+                    if (!objectValue(Shipping.street)) return res.status(400).send({ status: false, message: "Please enter your shipping street!" });
+                }
+                if (Shipping.city) {
+                    if (!objectValue(Shipping.city)) return res.status(400).send({ status: false, message: "Please enter your shipping city!" });
+                }
+                if (Shipping.pincode) {
+                    if (!Shipping.pincode || isNaN(Shipping.pincode)) return res.status(400).send({ status: false, message: "Please enter your shipping pincode!" });
+                    if (!pincodeRegex(Shipping.pincode)) return res.status(400).send({ status: false, message: "Shipping pincode is invalid!" });
+                }
+            }
+
+
+            // billing address validation
+            if (address.billing) {
+                let Billing = address.billing
+                if (!objectValue(Billing)) return res.status(400).send({ status: false, message: "Please enter your billing address!" })
+                if (Billing.street) {
+                    if (!objectValue(Billing.street)) return res.status(400).send({ status: false, message: "Please enter your billing street!" });
+                }
+                if (Billing.city) {
+                    if (!objectValue(Billing.city)) return res.status(400).send({ status: false, message: "Please enter your billing city!" });
+                }
+
+                if (Billing.pincode) {
+                    if (!Billing.pincode || isNaN(Billing.pincode)) return res.status(400).send({ status: false, message: "Please enter your billing pincode!" });
+                    if (!pincodeRegex(Billing.pincode)) return res.status(400).send({ status: false, message: "Billing pincode is invalid!" });
+                }
+            }
+        }
 
         //DB call and Update => update user details by requested body parameters 
         const updatedUserDetails = await userModel.findOneAndUpdate(
