@@ -2,7 +2,7 @@ const productModel = require("../models/productModel");
 const cartModel = require("../models/cartModel")
 const userModel = require("../models/userModel")
 const jwt = require('jsonwebtoken')
-const { keyValue, isValidObjectId, validQuantity } = require("../middleware/validator");  // IMPORTING VALIDATORS
+const { keyValue, objectValue, isValidObjectId, validQuantity } = require("../middleware/validator");  // IMPORTING VALIDATORS
 
 
 //-----------------------------------------------------  [TENTH API]  --------------------------------------------------------------\\
@@ -133,114 +133,100 @@ const createCart = async function (req, res) {
 //------------------------------------------------------  [ELEVENTH API]  -----------------------------------------------------------\\
 
 const updateCart = async function (req, res) {
-  try {  
-      let data = req.body
+  try {
+    const userId = req.params.userId;
 
-      //_____VALIDATIONS_____//
+    let bearerToken = req.headers.authorization;
+    let token = bearerToken.split(" ")[1]
+    let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-      //empty body validation
-
-      if (!keyValue(data)) { return res.status(400).send({ status: false, message: "Data can't be empty" }) }
-
-      const { cartId, productId, removeProduct } = data
-
-      // CartId Validation
-
-      if (!cartId) return res.status(400).send({ status: false, message: "please mention cartID" })
+    const { cartId, productId, removeProduct } = req.body
+    if (!keyValue(req.body)) { return res.status(400).send({ status: false, message: "Please provide something to update!" }) }
 
 
-      if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, message: "please mention valid cartID" })
+    // CartId Validation
 
-      let cart = await cartModel.findById({ _id: cartId })
+    if (!objectValue(cartId)) return res.status(400).send({ status: false, message: "Please enter cartId!" })
+    if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, message: "Please enter valid cartId!" })
 
-      if (!cart) { return res.status(400).send({ status: false, message: "No such cart found" }) }
+    let cart = await cartModel.findById({ _id: cartId })
+    if (!cart) { return res.status(400).send({ status: false, message: "Cart does not exist in the DB! " }) }
 
-      if (cart.items.length == 0) { return res.status(400).send({ status: false, message: "nothing to delete in item " }) }
+    if (cart.items.length == 0) { return res.status(400).send({ status: false, message: "Nothing left to delete!" }) }
 
-      //productId validation
+    //productId validation
 
-      if (!productId) return res.status(400).send({ status: false, message: "please mention productID" })
+    if (!productId) return res.status(400).send({ status: false, message: "Please enter productId!" })
 
-      if (!isValidObjectId(productId)) return res.status(400).send({ status: false, message: "please mention valid productID" })
+    if (!isValidObjectId(productId)) return res.status(400).send({ status: false, message: "Please enter valid productId!" })
 
-      let product = await productModel.findById({ _id: productId, isDeleted: false })
+    let product = await productModel.findById({ _id: productId, isDeleted: false })
 
-      if (!product) { return res.status(400).send({ status: false, message: "No such product found in cart " }) }
+    if (!product) { return res.status(400).send({ status: false, message: "Product not found in the Cart!" }) }
 
-      if (!(removeProduct == 1 || removeProduct == 0)) return res.status(400).send({ status: false, message: "please mention 1 or 0 only in remove product" })
+    if (!(removeProduct == 1 || removeProduct == 0)) return res.status(400).send({ status: false, message: "please mention 1 or 0 only in remove product" })
 
+    //****** if remove product : 1 *****/
+    let cartItems
+    let productQuantity
+    let productItems
+    let allPrice
+    let allItems
 
+    if (removeProduct == 1) {
 
-      //****** if remove product : 1 *****/
+      cartItems = cart.items
+      // items array
+      for (let i = 0; i < cartItems.length; i++) {
+        if (cartItems[i].productId == productId) {
+          productQuantity = cartItems[i].quantity - 1                            // decreasing quantity of product -1
+          cartItems[i].quantity = productQuantity
+          allPrice = cart.totalPrice - product.price;       // updated total price
 
-      if (removeProduct == 1) {
+          if (cartItems[i].quantity == 0) {
+            cartItems.splice(i, 1)
+            productItems = cart.totalItems - 1
+            allItems = productItems                               // only  if item quantity will become zero, totalItems 
+          }                                                        // will -1
+          break;
+        }
+        return cartItems                                                   // it will return item array  after changes
+      }
+      if (cartItems.length == 0) { allPrice = 0; allItems = 0 };        // if there will be no item in cart 
 
-          var pro = cart.items                                             // items array
+      let updatedProduct = await cartModel.findOneAndUpdate({ _id: cartId }, { items: cartItems, totalPrice: allPrice, totalItems: allItems }, { new: true })
 
-          for (let i = 0; i < pro.length; i++) {
+      return res.status(200).send({ status: true, message: "Success", data: updatedProduct })
 
-              if (pro[i].productId == productId) {
+    }
 
-                  let dec = pro[i].quantity - 1                            // decreasing quantity of product -1
+    //****** if remove product : 0 * *****/
 
-                  pro[i].quantity = dec
+    if (removeProduct == 0) {
 
-                  var cTotalPrice = cart.totalPrice - product.price;       // updated total price
-
-                  if (pro[i].quantity == 0) {
-                      pro.splice(i, 1)
-                      var ded = cart.totalItems - 1
-                      var cTotalItems = ded                               // only  if item quantity will become zero, totalItems 
-                  }                                                        // will -1
-
-                  break;
-
-              }
-              return pro                                                   // it will return item array  after changes
-          }
-
-          if (pro.length == 0) { cTotalPrice = 0; cTotalItems = 0 };        // if there will be no item in cart 
-
-          let updated = await cartModel.findOneAndUpdate({ _id: cartId }, { items: pro, totalPrice: cTotalPrice, totalItems: cTotalItems }, { new: true })
-
-          return res.status(200).send({ status: true, message: "update successfull", data: updated })
-
+      cartItems = cart.items
+      // array of items
+      for (let i = 0; i < cartItems.length; i++) {
+        if (cartItems[i].productId == productId) {
+          allPrice = cart.totalPrice - (product.price * cartItems[i].quantity)      //deducting products price from total pr
+          allItems = cart.totalItems - 1                            // decreasing totalItems quantity by 1
+          cartItems.splice(i, 1)                                                  // deleting product from items array
+          break;
+        }
       }
 
-      //****** if remove product : 0 * *****/
+    }
+    if (cartItems.length == 0) { allPrice = 0; allItems = 0 };             // if items array will become empty
 
-      if (removeProduct == 0) {
-
-          var pro = cart.items                                                             // array of items
-
-          for (let i = 0; i < pro.length; i++) {
-
-              if (pro[i].productId == productId)
-
-                  var cTotalPrice = cart.totalPrice - (product.price * pro[i].quantity)      //deducting products price from total pr
-
-
-              var cTotalItems = cart.totalItems - 1                            // decreasing totalItems quantity by 1
-
-              pro.splice(i, 1)                                                  // deleting product from items array
-
-              break;
-          }
-
-      }
-      if (pro.length == 0) { cTotalPrice = 0; cTotalItems = 0 };             // if items array will become empty
-
-      let updated = await cartModel.findOneAndUpdate({ _id: cartId }, { items: pro, totalPrice: cTotalPrice, totalItems: cTotalItems }, { new: true })                                                         // updated
-
-      return res.status(200).send({ status: true, message: "update successfull", data: updated })
+    let updatedProduct = await cartModel.findOneAndUpdate({ _id: cartId }, { items: cartItems, totalPrice: allPrice, totalItems: allItems }, { new: true })                                                         // updated
+    return res.status(200).send({ status: true, message: "Success", data: updatedProduct })
   }
-
   catch (err) {
-      console.log(err)
-      return res.status(500).send({ status: false, msg: "Error", error: err.message })
+    console.log(err)
+    return res.status(500).send({ status: false, msg: "Error", error: err.message })
 
   }
-
 
 }
 
