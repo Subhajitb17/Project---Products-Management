@@ -45,7 +45,7 @@ const createOrder = async function (req, res) {
         if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, message: "Please provide valid cartId!" });
          
         // let duplicateUserId = await cartModel.findById(userId)
-        let cartItems = await cartModel.findOne({_id: cartId, userId: userId ,isDeleted: false})
+        const cartItems = await cartModel.findOne({_id: cartId, userId: userId ,isDeleted: false})
         if(cartItems.userId !== userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
         // let cartItems = await cartModel.findOne({_id: cartId, isDeleted: false})
         if(!cartItems) return res.status(400).send({ status: false, message: "Either cart is empty or does not exist!" });
@@ -98,7 +98,7 @@ const updateOrder = async function (req, res) {
         if (!objectValue(orderId)) return res.status(400).send({ status: false, message: "Please provide orderId!" });
         if (!isValidObjectId(orderId)) return res.status(400).send({ status: false, message: "Please provide valid orderId!" });
 
-        let orderOfUser = await orderModel.findOne({_id: orderId, userId: userId ,isDeleted: false})
+        const orderOfUser = await orderModel.findOne({_id: orderId, userId: userId ,isDeleted: false})
         if(orderOfUser.userId !== userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
         if(!orderOfUser) return res.status(400).send({ status: false, message: "No such order has been placed yet!" });
 
