@@ -15,6 +15,8 @@ const createCart = async function (req, res) {
 
   try {
     const userId = req.params.userId;
+    if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
+
     let { quantity, productId, cartId } = req.body;
 
     let bearerToken = req.headers.authorization;
@@ -26,11 +28,7 @@ const createCart = async function (req, res) {
 
     if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide valid request body!" });
 
-    if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
-
-
     if (!isValidObjectId(productId)) return res.status(400).send({ status: false, message: "Please provide valid Product Id!" });
-
 
     if (!quantity) {
       quantity = 1;

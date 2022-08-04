@@ -1,3 +1,127 @@
+const productModel = require("../models/productModel");
+const cartModel = require("../models/cartModel")
+const userModel = require("../models/userModel")
+const orderModel = require("../models/orderModel")
+const jwt = require('jsonwebtoken')
+const { keyValue, isValidObjectId } = require("../middleware/validator");  // IMPORTING VALIDATORS
+
+
+//----------------------------------------------------  [FOURTHEENTH API]  ------------------------------------------------------------\\
+
+// ### orders
+// ```yaml
+// {
+//   "_id": ObjectId("88abc190ef0288abc190ef88"),
+//   userId: ObjectId("88abc190ef0288abc190ef02"),
+//   items: [{
+//     productId: ObjectId("88abc190ef0288abc190ef55"),
+//     quantity: 2
+//   }, {
+//     productId: ObjectId("88abc190ef0288abc190ef60"),
+//     quantity: 1
+//   }],
+//   totalPrice: 50.99,
+//   totalItems: 2,
+//   totalQuantity: 3,
+//   cancellable: true,
+//   status: 'pending'
+//   createdAt: "2021-09-17T04:25:07.803Z",
+//   updatedAt: "2021-09-17T04:25:07.803Z",
+// }
+
+const createOrder = async function (req, res) {
+ 
+    try {
+        const {userId} = req.params
+        const {cartId, status, cancellable} = req.body
+        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
+        if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, message: "Please provide valid cartId!" });
+         
+
+        // let duplicateUserId = await cartModel.findById(userId)
+        let cartItems = await cartModel.findOne({_id: cartId, userId: userId ,isDeleted: false})
+        if(!(cartItems.userId == userId)) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
+
+        let bearerToken = req.headers.authorization;
+        let token = bearerToken.split(" ")[1]
+        let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+        if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
+
+        // let cartItems = await cartModel.findOne({_id: cartId, isDeleted: false})
+        if(!cartItems) return res.status(400).send({ status: false, message: "Either cart is empty or does not exist!" });
+
+        
+        let items = cartItems.items
+        let totalQuantity = 0
+        for (let i = 0; i<items.length; i++) {
+             totalQuantity += items[i].quantity
+        }
+
+        if(cancellable){
+        if(cancellable !== true || false) {
+            return res.status(400).send({ status: false, message: "Cancellable can be either true or false!" });
+        }
+      }
+
+      if(status){
+        if(status !== "pending" || "completed" || "cancled") {
+            return res.status(400).send({ status: false, message: "Status can be either pending or completed or cancled!" });
+        }
+      }
+
+        let order = {userId:userId, items: cartItems.items,  totalPrice: cartItems.totalPrice, totalItems:cartItems.totalItems, totalQuantity:totalQuantity, cancellable: cancellable, status: status}
+
+        let orderCreation = await orderModel.create(order)
+        return res.status(201).send({ status: true, message: `Order created successfully`, data: orderCreation });
+
+
+} catch (error) {
+    res.status(500).send({ status: false, data: error.message });
+  }
+};
+
+
+const updateOrder = async function (req, res) {
+ 
+    try {
+        const userId = req.params.userId;
+        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
+
+        let bearerToken = req.headers.authorization;
+        let token = bearerToken.split(" ")[1]
+        let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+        if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
+
+
+
+} catch (error) {
+    res.status(500).send({ status: false, data: error.message });
+  }
+};
+
+
+
+
+
+module.exports = { createOrder, updateOrder }  // Destructuring & Exporting
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // const updateCart = async function (req, res) {
 //     try {
 //         let data = req.body
