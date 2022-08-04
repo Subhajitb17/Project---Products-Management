@@ -3,7 +3,7 @@ const route = express.Router();
 const {createUser, loginUser, getUserDeatailsById, updateUserDetails} = require("../controllers/userController");
 const {createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId} = require("../controllers/productController");
 const {createCart, updateCart, getCartDetails, deleteCart} = require("../controllers/cartController");
-const {createOrder} = require("../controllers/orderController");
+const {createOrder, updateOrder} = require("../controllers/orderController");
 const {authentication} = require("../middleware/auth")
 
 
@@ -36,7 +36,9 @@ route.get("/users/:userId/cart" ,authentication, getCartDetails)
 route.delete("/users/:userId/cart" ,authentication, deleteCart)
 
 
-route.delete("/users/:userId/orders" ,authentication, createOrder)
+route.post("/users/:userId/orders" ,authentication, createOrder)
+
+route.put("/users/:userId/orders" ,authentication, updateOrder)
 
 
 

@@ -28,10 +28,29 @@ const createOrder = async function (req, res) {
 };
 
 
+const updateOrder = async function (req, res) {
+ 
+    try {
+        const userId = req.params.userId;
+        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
+
+        let bearerToken = req.headers.authorization;
+        let token = bearerToken.split(" ")[1]
+        let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+        if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
 
 
-module.exports = { createOrder }  // Destructuring & Exporting
+} catch (error) {
+    res.status(500).send({ status: false, data: error.message });
+  }
+};
+
+
+
+
+
+module.exports = { createOrder, updateOrder }  // Destructuring & Exporting
 
 
 
