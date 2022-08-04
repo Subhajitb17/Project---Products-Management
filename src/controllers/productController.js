@@ -315,7 +315,7 @@ const updateProduct = async function (req, res) {
 }
 
  
-module.exports = { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId }  
+// module.exports = { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId }  
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////      DELETE      PRODUCT       API     //////////////////////////////////////

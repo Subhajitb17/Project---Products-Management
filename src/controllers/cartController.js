@@ -240,7 +240,7 @@ const deleteCart = async (req, res) => {
 
   if(findCartOfUser.totalItems === 0 && findCartOfUser.totalPrice === 0 ) {
      await cartModel.findOneAndUpdate(
-      { _id: cartId, isDeleted: false },
+      { _id: userId, isDeleted: false },
       { $set: { isDeleted: true, deletedAt: new Date() } },
       { new: true })
     res.status(200).send({ status: true, message: "Cart has been deleted successfully!" })
