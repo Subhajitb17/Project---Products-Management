@@ -1,6 +1,4 @@
-const productModel = require("../models/productModel");
 const cartModel = require("../models/cartModel")
-const userModel = require("../models/userModel")
 const orderModel = require("../models/orderModel")
 const jwt = require('jsonwebtoken')
 const { keyValue, isValidObjectId, objectValue } = require("../middleware/validator");  // IMPORTING VALIDATORS
@@ -35,6 +33,11 @@ const createOrder = async function (req, res) {
         const {userId} = req.params
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
 
+        let bearerToken = req.headers.authorization;
+        let token = bearerToken.split(" ")[1]
+        let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+        if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
+
         const {cartId, status, cancellable} = req.body
         if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please enter something!" });
 
@@ -43,13 +46,7 @@ const createOrder = async function (req, res) {
          
         // let duplicateUserId = await cartModel.findById(userId)
         let cartItems = await cartModel.findOne({_id: cartId, userId: userId ,isDeleted: false})
-        if(!(cartItems.userId == userId)) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
-
-        let bearerToken = req.headers.authorization;
-        let token = bearerToken.split(" ")[1]
-        let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
-        if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
-
+        if(cartItems.userId !== userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
         // let cartItems = await cartModel.findOne({_id: cartId, isDeleted: false})
         if(!cartItems) return res.status(400).send({ status: false, message: "Either cart is empty or does not exist!" });
 
@@ -89,13 +86,21 @@ const updateOrder = async function (req, res) {
     try {
         const userId = req.params.userId;
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
-
+   
         let bearerToken = req.headers.authorization;
         let token = bearerToken.split(" ")[1]
         let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
         if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
+        const {orderId} = req.body
+        if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please enter something!" });
 
+        if (!objectValue(orderId)) return res.status(400).send({ status: false, message: "Please provide orderId!" });
+        if (!isValidObjectId(orderId)) return res.status(400).send({ status: false, message: "Please provide valid orderId!" });
+
+        let orderItems = await cartModel.findOne({_id: orderId, userId: userId ,isDeleted: false})
+        if(orderItems.userId !== userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
+        if(!orderItems) return res.status(400).send({ status: false, message: "No such order has been placed yet!" });
 
 } catch (error) {
     res.status(500).send({ status: false, data: error.message });
