@@ -136,6 +136,7 @@ const getProducts = async (req, res) => {
       if (!objectValue(name)) { return res.status(400).send({ status: false, message: "Product name is invalid!" }) }
       // product name must be in alphabate only
       if (!strRegex(name)) { return res.status(400).send({ status: false, message: "Please enter Product name is alphabets only!" }) }
+      filter.title = name.trim()
     }
 
     // product filter by price greatherThan the given price
