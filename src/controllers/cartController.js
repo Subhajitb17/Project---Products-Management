@@ -93,7 +93,8 @@ const createCart = async function (req, res) {
       let arr = findCartOfUser.items;
 
       for (i in arr) {
-        if (arr[i].productId) {
+        if (arr[i].productId.toString()===productId) {
+
           arr[i].quantity += quantity;
           let updatedCart = {
             items: arr,
