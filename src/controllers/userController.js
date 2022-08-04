@@ -15,7 +15,7 @@ const createUser = async (req, res) => {
     try {
         const address = req.body.address
         // Destructuring
-        let { fname, lname, email, phone, password } = req.body  
+        let { fname, lname, email, phone, password } = req.body
 
         // Request body validation => empty or not
         if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide details!" })
@@ -71,9 +71,8 @@ const createUser = async (req, res) => {
 
 
         // Address validation => address is mandatory
-        if (address) {
-            if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
-        }
+
+        if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
 
         // shipping address validation
         if (!objectValue(address.shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })
@@ -90,7 +89,7 @@ const createUser = async (req, res) => {
         if (!pincodeRegex(address.billing.pincode)) return res.status(400).send({ status: false, message: "Billing pincode is invalid!" });
 
         // Destructuring
-        let users = { fname, lname, email, profileImage, phone, password, address } 
+        let users = { fname, lname, email, profileImage, phone, password, address }
 
         //Create user and store in DB
         const userCreation = await userModel.create(users)
