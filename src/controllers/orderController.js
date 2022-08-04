@@ -3,39 +3,29 @@ const cartModel = require("../models/cartModel")
 const userModel = require("../models/userModel")
 const orderModel = require("../models/orderModel")
 const jwt = require('jsonwebtoken')
-const { keyValue, isValidObjectId, validQuantity } = require("../middleware/validator");  // IMPORTING VALIDATORS
+const { keyValue, isValidObjectId } = require("../middleware/validator");  // IMPORTING VALIDATORS
 
 
+//----------------------------------------------------  [FOURTHEENTH API]  ------------------------------------------------------------\\
 
 
+const createOrder = async function (req, res) {
+ 
+    try {
+        const userId = req.params.userId;
+        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
 
+        let bearerToken = req.headers.authorization;
+        let token = bearerToken.split(" ")[1]
+        let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
+        if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
+        
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+} catch (error) {
+    res.status(500).send({ status: false, data: error.message });
+  }
+};
 
 
 
