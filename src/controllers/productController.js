@@ -159,7 +159,7 @@ const getProducts = async (req, res) => {
     }
 
     //DB call => select product from DB by price filter sort the product min price to max price
-    const productList = await productModel.find(productQuery).sort({ price: 1 })
+    const productList = await productModel.find(filter).sort({ price: 1 })
 
     // no produt found by price filter
     if (productList.length === 0) return res.status(400).send({ status: false, message: "no product found!" })
