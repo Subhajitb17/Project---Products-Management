@@ -88,7 +88,7 @@ const updateOrder = async function (req, res) {
   
 
        if(orderOfUser.status == 'completed' || orderOfUser.status == 'cancled'){
-        return res.status(400).send({status: false, message: "Order already completed or cancelled"})
+        return res.status(400).send({status: false, message: "Order already completed or cancelled!"})
        }
        
         if(orderOfUser.cancellable === true){
