@@ -6,26 +6,6 @@ const { keyValue, isValidObjectId, objectValue } = require("../middleware/valida
 
 //----------------------------------------------------  [FOURTHEENTH API]  ------------------------------------------------------------\\
 
-// ### orders
-// ```yaml
-// {
-//   "_id": ObjectId("88abc190ef0288abc190ef88"),
-//   userId: ObjectId("88abc190ef0288abc190ef02"),
-//   items: [{
-//     productId: ObjectId("88abc190ef0288abc190ef55"),
-//     quantity: 2
-//   }, {
-//     productId: ObjectId("88abc190ef0288abc190ef60"),
-//     quantity: 1
-//   }],
-//   totalPrice: 50.99,
-//   totalItems: 2,
-//   totalQuantity: 3,
-//   cancellable: true,
-//   status: 'pending'
-//   createdAt: "2021-09-17T04:25:07.803Z",
-//   updatedAt: "2021-09-17T04:25:07.803Z",
-// }
 
 const createOrder = async function (req, res) {
  
@@ -81,6 +61,27 @@ const createOrder = async function (req, res) {
 };
 
 
+// ### orders
+// ```yaml
+// {
+//   "_id": ObjectId("88abc190ef0288abc190ef88"),
+//   userId: ObjectId("88abc190ef0288abc190ef02"),
+//   items: [{
+//     productId: ObjectId("88abc190ef0288abc190ef55"),
+//     quantity: 2
+//   }, {
+//     productId: ObjectId("88abc190ef0288abc190ef60"),
+//     quantity: 1
+//   }],
+//   totalPrice: 50.99,
+//   totalItems: 2,
+//   totalQuantity: 3,
+//   cancellable: true,
+//   status: 'pending'
+//   createdAt: "2021-09-17T04:25:07.803Z",
+//   updatedAt: "2021-09-17T04:25:07.803Z",
+// }
+
 const updateOrder = async function (req, res) {
  
     try {
@@ -92,7 +93,7 @@ const updateOrder = async function (req, res) {
         let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
         if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-        const {orderId} = req.body
+        const {orderId, status} = req.body
         if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please enter something!" });
 
         if (!objectValue(orderId)) return res.status(400).send({ status: false, message: "Please provide orderId!" });
@@ -101,6 +102,30 @@ const updateOrder = async function (req, res) {
         const orderOfUser = await orderModel.findOne({_id: orderId, userId: userId ,isDeleted: false})
         if(orderOfUser.userId !== userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
         if(!orderOfUser) return res.status(400).send({ status: false, message: "No such order has been placed yet!" });
+
+       
+        if(status !== "completed" || "cancled") return res.status(400).send({ status: false, message: "Status can be either completed or cancled!" });
+
+        else {
+            const updatedOrder = await orderModel.findOneAndUpdate(
+                { _id: orderId },
+                { $set: { status:status } },
+                { new: true }
+              );
+
+              if (updatedOrder.status == "completed" ) {
+                updatedOrder.splice(0,1)
+            }
+            
+              return res.status(200).send({ status: true, message: 'Success', data: updatedOrder });
+              
+        }
+
+     
+
+        
+
+          
 
 } catch (error) {
     res.status(500).send({ status: false, data: error.message });
