@@ -287,7 +287,7 @@ const updateUserDetails = async function (req, res) {
         // Address validation => if key is present then value must not be empty
         if (address) {
             if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
-        }
+        
 
         // shipping address validation
         if (!objectValue(address.shipping)) return res.status(400).send({ status: false, message: "Please enter your shipping address!" })
@@ -302,6 +302,7 @@ const updateUserDetails = async function (req, res) {
         if (!objectValue(address.billing.city)) return res.status(400).send({ status: false, message: "Please enter your billing city!" });
         if (!address.billing.pincode || isNaN(address.billing.pincode)) return res.status(400).send({ status: false, message: "Please enter your billing pincode!" });
         if (!pincodeRegex(address.billing.pincode)) return res.status(400).send({ status: false, message: "Billing pincode is invalid!" });
+    } 
 
         //DB call and Update => update user details by requested body parameters 
         const updatedUserDetails = await userModel.findOneAndUpdate(
