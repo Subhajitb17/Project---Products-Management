@@ -1,3 +1,62 @@
+const productModel = require("../models/productModel");
+const cartModel = require("../models/cartModel")
+const userModel = require("../models/userModel")
+const orderModel = require("../models/orderModel")
+const jwt = require('jsonwebtoken')
+const { keyValue, isValidObjectId, validQuantity } = require("../middleware/validator");  // IMPORTING VALIDATORS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // const updateCart = async function (req, res) {
 //     try {
 //         let data = req.body
