@@ -3,7 +3,7 @@ const cartModel = require("../models/cartModel")
 const userModel = require("../models/userModel")
 const orderModel = require("../models/orderModel")
 const jwt = require('jsonwebtoken')
-const { keyValue, isValidObjectId } = require("../middleware/validator");  // IMPORTING VALIDATORS
+const { keyValue, isValidObjectId, objectValue } = require("../middleware/validator");  // IMPORTING VALIDATORS
 
 
 //----------------------------------------------------  [FOURTHEENTH API]  ------------------------------------------------------------\\
@@ -33,11 +33,14 @@ const createOrder = async function (req, res) {
  
     try {
         const {userId} = req.params
-        const {cartId, status, cancellable} = req.body
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
+
+        const {cartId, status, cancellable} = req.body
+        if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please enter something!" });
+
+        if (!objectValue(cartId)) return res.status(400).send({ status: false, message: "Please provide cartId!" });
         if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, message: "Please provide valid cartId!" });
          
-
         // let duplicateUserId = await cartModel.findById(userId)
         let cartItems = await cartModel.findOne({_id: cartId, userId: userId ,isDeleted: false})
         if(!(cartItems.userId == userId)) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
@@ -98,9 +101,6 @@ const updateOrder = async function (req, res) {
     res.status(500).send({ status: false, data: error.message });
   }
 };
-
-
-
 
 
 module.exports = { createOrder, updateOrder }  // Destructuring & Exporting
