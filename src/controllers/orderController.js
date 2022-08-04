@@ -20,7 +20,7 @@ const createOrder = async function (req, res) {
         let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
         if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-        
+
 
 } catch (error) {
     res.status(500).send({ status: false, data: error.message });
@@ -29,6 +29,9 @@ const createOrder = async function (req, res) {
 
 
 
+
+
+module.exports = { createOrder }  // Destructuring & Exporting
 
 
 
