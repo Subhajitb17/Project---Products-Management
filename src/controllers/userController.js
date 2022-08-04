@@ -203,6 +203,8 @@ const updateUserDetails = async function (req, res) {
         //request userId from path params
         const userId = req.params.userId;
 
+        const address = req.body.address 
+
         //userId validation => userId is valid ObjcetId or not
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "userId is invalid!" })
 
@@ -221,7 +223,7 @@ const updateUserDetails = async function (req, res) {
         //user not found in DB
         if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }
 
-        let { address, fname, lname, email, phone, password, profileImage } = req.body;  // Destructuring
+        let {fname, lname, email, phone, password, profileImage } = req.body;  // Destructuring
 
 
         //upload profile image(a file) by aws
