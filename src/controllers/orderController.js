@@ -98,7 +98,7 @@ const updateOrder = async function (req, res) {
         if (!objectValue(orderId)) return res.status(400).send({ status: false, message: "Please provide orderId!" });
         if (!isValidObjectId(orderId)) return res.status(400).send({ status: false, message: "Please provide valid orderId!" });
 
-        let orderItems = await cartModel.findOne({_id: orderId, userId: userId ,isDeleted: false})
+        let orderItems = await orderModel.findOne({_id: orderId, userId: userId ,isDeleted: false})
         if(orderItems.userId !== userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
         if(!orderItems) return res.status(400).send({ status: false, message: "No such order has been placed yet!" });
 
