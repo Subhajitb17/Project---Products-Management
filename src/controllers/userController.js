@@ -14,7 +14,8 @@ const { objectValue, nameRegex, keyValue, mobileRegex, emailRegex, passwordRegex
 const createUser = async (req, res) => {
     try {
         const address = req.body.address
-        let { fname, lname, email, phone, password } = req.body  // Destructuring
+        // Destructuring
+        let { fname, lname, email, phone, password } = req.body  
 
         // Request body validation => empty or not
         if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide details!" })
@@ -43,13 +44,13 @@ const createUser = async (req, res) => {
         let uploadFileURL;
         //check file of profileImage
         if (files && files.length > 0) {
-            //upload file to S3 of AWs
+            //upload file to S3 of AWS
             uploadFileURL = await aws.uploadFile(files[0])
         }
         else {
             return res.status(400).send({ status: false, message: "Please add profile image" })
         }
-        ////store the URL where profile image uploaded in a variable (AWS Url)
+        //store the URL where profile image uploaded in a variable (AWS Url)
         let profileImage = uploadFileURL
 
         //phone number validation => phone is number mandatory
@@ -88,7 +89,8 @@ const createUser = async (req, res) => {
         if (!address.billing.pincode || isNaN(address.billing.pincode)) return res.status(400).send({ status: false, message: "Please enter your billing pincode!" });
         if (!pincodeRegex(address.billing.pincode)) return res.status(400).send({ status: false, message: "Billing pincode is invalid!" });
 
-        let users = { fname, lname, email, profileImage, phone, password, address } // Destructuring
+        // Destructuring
+        let users = { fname, lname, email, profileImage, phone, password, address } 
 
         //Create user and store in DB
         const userCreation = await userModel.create(users)
@@ -98,8 +100,7 @@ const createUser = async (req, res) => {
     catch (error) {
         res.status(500).send({ status: false, message: error.message })
     }
-
-} 
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +109,8 @@ const createUser = async (req, res) => {
 
 const loginUser = async function (req, res) { 
     try {
-        let { email, password } = req.body  // Destructuring
+        // Destructuring
+        let { email, password } = req.body
 
         // Request body validation => empty or not
         if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide email and password!" })
@@ -167,7 +169,7 @@ const getUserDeatailsById = async (req, res) => {
         //request userId from path params
         const userId = req.params.userId
 
-        //UserId valid ObjectId or not
+        //UserId is valid ObjectId or not
         if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }
 
         //Authorization Validation
@@ -180,7 +182,7 @@ const getUserDeatailsById = async (req, res) => {
         //userId from token and userId from params not match
         if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-        //DB Call => find userId from userModel
+        //DB Call => find by userId from userModel
         let findUsersbyId = await userModel.findOne({ _id: userId })
         //user not found in DB
         if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }
@@ -215,7 +217,7 @@ const updateUserDetails = async function (req, res) {
         //userId from token and userId from params not match
         if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
-        //DB call => find userId from userModel
+        //DB call => find by userId from userModel
         let findUsersbyId = await userModel.findOne({ _id: userId })
         //user not found in DB
         if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }
@@ -308,7 +310,7 @@ const updateUserDetails = async function (req, res) {
             { $set: { fname, lname, email, phone, password, address, profileImage } },
             { new: true }
         );
-        //Successfull upadte user return response to body
+        //Successfull upadte user details return response to body
         return res.status(200).send({ status: true, message: 'Success', data: updatedUserDetails });
 
     } catch (err) {

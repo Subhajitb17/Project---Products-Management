@@ -2,68 +2,81 @@ const productModel = require("../models/productModel");
 const aws = require("../aws/s3")
 const { objectValue, keyValue, numberValue, isValidObjectId, strRegex, booleanValue } = require("../middleware/validator")  // IMPORTING VALIDATORS
 
-//------------------------------------------------------  [FIFTH API]  --------------------------------------------------------------\\
 
-// V = Validator 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////      CREATE     PRODUCT     API      //////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const createProduct = async (req, res) => {
-
   try {
-    const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments, isDeleted } = req.body  // Destructuring
+    // Destructuring
+    const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments, isDeleted } = req.body
 
-    if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide details!" })  // 3rd V used here
+    // Request body validation => empty or not
+    if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide details!" })
 
-    //upload book cover(a file) by aws
+    //upload product image(a file) by aws in S3
+    // request product image from body
     let files = req.files
     let uploadFileURL;
+    //check file of productImage
     if (files && files.length > 0) {
+      //upload file to S3 of AWS
       uploadFileURL = await aws.uploadFile(files[0])
     }
     else {
       return res.status(400).send({ status: false, message: "Please add product image" })
     }
-    //aws-url
+    //store the URL where product image uploaded in a variable (AWS Url)
     let productImage = uploadFileURL
 
-    if (!objectValue(title)) return res.status(400).send({ status: false, message: "Please enter title!" })  // 2nd V used here
-    if (!strRegex(title)) return res.status(400).send({ status: false, message: "Please enter title in alphabets only!" })  // 2nd V used here
+    //Title validation => product title is mandatory
+    if (!objectValue(title)) return res.status(400).send({ status: false, message: "Please enter title!" })
+    //title must be in alphabate only
+    if (!strRegex(title)) return res.status(400).send({ status: false, message: "Please enter title in alphabets only!" })
+    // product title must be unique => checking from DB that product already present in database or not
+    let duplicateTitle = await productModel.findOne({ title })
+    if (duplicateTitle) return res.status(400).send({ status: false, message: "title is already in use!" })
 
-    let duplicateTitle = await productModel.findOne({ title })        // DB Call
-    if (duplicateTitle) return res.status(400).send({ status: false, message: "title is already in use!" })   // Duplicate Validation
+    //Product description validation => description is mandatory
+    if (!objectValue(description)) return res.status(400).send({ status: false, message: "Please enter description!" })
 
-    if (!objectValue(description)) return res.status(400).send({ status: false, message: "Please enter description!" })  // 2nd V used here
-
-
+    //Price Validation => price is mandatory
     if (!price) return res.status(400).send({ status: false, message: "Please enter price!" })
-    // 2nd V used here
     if (price) {
       if (!numberValue(price)) return res.status(400).send({ status: false, message: "Please enter price!" })
     }
 
+    // CurrencyId validation => if key is present then value must not be empty
     if (currencyId) {
       if (!objectValue(currencyId)) return res.status(400).send({ status: false, message: "Please enter currencyId!" })
-      // 2nd V used here
+      // currenctId must be "INR" only
       if (currencyId !== "INR") return res.status(400).send({ status: false, message: "Please enter currencyId in correct format!" })
     }
 
+    // CurrencyFormat validation => if key is present then value must not be empty
     if (currencyFormat) {
       if (!objectValue(currencyFormat)) return res.status(400).send({ status: false, message: "Please enter currencyFormat!" })
-      // 2nd V used here
+      //currencyFormat must be "₹" only
       if (currencyFormat !== "₹") return res.status(400).send({ status: false, message: "Please enter currencyFormat in correct format!" })
     }
 
-    if (isFreeShipping || isFreeShipping === "") { if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, message: "Please enter isFreeShipping!" }) }  // 2nd V used here
+    //isFreeShipping Validation => if key is present then value must not be empty and in boolean only
+    if (isFreeShipping || isFreeShipping === "") {
+      if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, message: "Please enter isFreeShipping!" })
+    }
 
-
-    // Validation For availableSizes
+    // availableSizes validation
     let availableSize
+    // availableSizes are mendatory
     if (!availableSizes) return res.status(400).send({ status: false, message: "Please enter atleast one available size!" })
     if (availableSizes) {
+      //covert availableSizes into upper case and split then with comma 
       availableSize = availableSizes.toUpperCase().split(",")
-      console.log(availableSize);  // Creating an array
-
-      //  Enum validation on availableSizes
+      //availableSizes must be in enum (["S", "XS", "M", "X", "L", "XXL", "XL"])
       for (let i = 0; i < availableSize.length; i++) {
+        //in enum or not checking for availableSizes
         if (!(["S", "XS", "M", "X", "L", "XXL", "XL"]).includes(availableSize[i])) {
           return res.status(400).send({ status: false, message: `Sizes should be ${["S", "XS", "M", "X", "L", "XXL", "XL"]}` })
         }
@@ -78,80 +91,105 @@ const createProduct = async (req, res) => {
   //   req.body.availableSizes =  arr
   // }
 
+    // Style validation => if key is present then value must not be empty
     if (style) {
       if (!objectValue(style)) return res.status(400).send({ status: false, message: "Please enter style!" })
-    }  // 2nd V used here
+    }
 
+    // installments validation => if key is present then value must not be empty
     if (installments === "") {
       if (!numberValue(installments)) return res.status(400).send({ status: false, message: "Please enter installments!" })
-    }   // 2nd V used here
+    }
 
-    if (isDeleted === true || isDeleted === "") return res.status(400).send({ status: false, message: "isDeleted must be false!" })  // Boolean Validation
+    //isDeleted validation => if key is present then value must be false
+    if (isDeleted === true || isDeleted === "") return res.status(400).send({ status: false, message: "isDeleted must be false!" })
 
-  const products = { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSizes: availableSize, style, installments, isDeleted }
+    // Destructuring
+    const products = { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSizes: availableSize, style, installments, isDeleted }
 
-  const productCreation = await productModel.create(products)
+    //Create product and store in DB
+    const productCreation = await productModel.create(products)
+    //successfull creation of products response
+    res.status(201).send({ status: true, message: 'Success', data: productCreation })
 
-  res.status(201).send({ status: true, message: 'Success', data: productCreation })
-
-  } catch (error) {
+  }
+  catch (error) {
     res.status(500).send({ status: false, message: error.message });
   }
-};
+}
 
 
-
-
-//-----------------------------------------------------  [SIXTH API]  ---------------------------------------------------------------\\
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////      GET     PRODUCTS      API     ////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const getProducts = async (req, res) => {
   try {
     const productQuery = req.query;
-    const filter = { isDeleted: false };          // Object Manupulation
-    const { size, name, priceGreaterThan, priceLessThan } = productQuery;       // Destructuring          
+    // Object Manupulation
+    const filter = { isDeleted: false };
+    // Destructuring  
+    const { size, name, priceGreaterThan, priceLessThan } = productQuery;
 
-    if (objectValue(size)) {               // 2nd V used here
+    //size validation
+    if (objectValue(size)) {
       const sizeArray = size.trim().split(",").map((s) => s.trim())
-      filter.availableSizes = { $all: sizeArray } // The $all operator selects the documents where the value of a field is an array that contains all the specified elements.
+      // The "$all" operator selects the documents where the value of a field is an array that contains all the specified elements.
+      filter.availableSizes = { $all: sizeArray }
     };
 
-    if (name) {                // Nested If Else used here
-      if (!objectValue(name)) { return res.status(400).send({ status: false, message: "Product name is invalid!" }) }  // 2nd V used here
-      if (!strRegex(name)) { return res.status(400).send({ status: false, message: "Please enter Product name is alphabets only!" }) }  // 2nd V used here
-      else { filter.title = name };
+    //product name validation
+    if (name) {
+      // product name validation => if key is present then value must not be empty
+      if (!objectValue(name)) { return res.status(400).send({ status: false, message: "Product name is invalid!" }) }
+      // product name must be in alphabate only
+      if (!strRegex(name)) { return res.status(400).send({ status: false, message: "Please enter Product name is alphabets only!" }) }
     }
 
+    // product filter by price greatherThan the given price
     if (priceGreaterThan) filter.price = { $gt: priceGreaterThan }
+    // product filter by price lessThan the given price
     if (priceLessThan) filter.price = { $lt: priceLessThan }
 
+    // product filter by both greatherThan and lessThan price
     if (priceGreaterThan && priceLessThan) {
       filter.price = { $gte: priceGreaterThan, $lte: priceLessThan }
     }
 
+    //DB call => select product from DB by price filter sort the product min price to max price
     const productList = await productModel.find(filter).sort({ price: 1 })
 
-    if (productList.length === 0) return res.status(400).send({ status: false, message: "no product found!" })  // DB Validation
+    // no produt found by price filter
+    if (productList.length === 0) return res.status(400).send({ status: false, message: "no product found!" })
 
+    //Successfull execution response with productDetails
     res.status(200).send({ status: true, message: 'Product list', data: productList })
 
   }
   catch (error) {
     res.status(500).send({ status: false, message: error.message });
   }
-};
+}
 
-//----------------------------------------------------  [SEVENTH API]  --------------------------------------------------------------\\
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////      GET     PRODUCTS      By     ID    API     //////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const getProductsbyId = async (req, res) => {
 
   try {
+    //request productId from path params
     const productId = req.params.productId
+    //productId is valid ObjectId or not
+    if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, message: "productId is invalid!" }) }
 
-    if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, message: "productId is invalid!" }) }    // 1st V used here
+    //DB call => find by productId from productModel
+    const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })
+    //product not found in DB
+    if (!findProductsbyId) { return res.status(404).send({ status: false, message: "Products not found or does not exist!" }) }
 
-    const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })     // DB Call
-    if (!findProductsbyId) { return res.status(404).send({ status: false, message: "Products not found or does not exist!" }) }   // DB Validation
-
+    //Successfull execution response with productDetails
     res.status(200).send({ status: true, message: 'Product Details', data: findProductsbyId })
 
   } catch (error) {
@@ -160,119 +198,117 @@ const getProductsbyId = async (req, res) => {
 }
 
 
-//----------------------------------------------------  [EIGHTH API] ---------------------------------------------------------------\\
-
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////      UPDATE       PRODUCT       API     //////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const updateProduct = async function (req, res) {
   try {
+    //request productId from path params
     const productId = req.params.productId;
+    //productId validation => productId is valid ObjcetId or not
+    if (!isValidObjectId(productId)) return res.status(400).send({ status: false, message: "productId is invalid!" })
 
-    if (!isValidObjectId(productId)) return res.status(400).send({ status: false, message: "productId is invalid!" })   // 1st V used here
-
-    const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })            // DB Call
+    //BD call => find by productId from productModel
+    const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })
+    //product not found in DB
     if (!findProductsbyId) { return res.status(404).send({ status: false, message: "Products not found or does not exist!" }) }
 
+    // Destructuring
+    const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments } = req.query
 
+    //something given to update product details or not 
+    if (!keyValue(req.query)) return res.status(400).send({ status: false, message: "Please provide something to update!" });
 
-    const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments } = req.query;  // Destructuring
-
-    if (!keyValue(req.query)) return res.status(400).send({ status: false, message: "Please provide something to update!" }); // 3rd V used here
-
-    //upload book cover(a file) by aws
+    //upload product image(a file) by aws
     let files = req.files
     let uploadFileURL;
+    //check file of productImage      
     if (files && files.length > 0) {
+      //upload file to S3 of AWS
       uploadFileURL = await aws.uploadFile(files[0])
     }
-
-    //aws-url
+    //store the URL where product image uploaded in a variable (AWS Url)
     let productImage = uploadFileURL
 
-    if (!(title || description || price || currencyId || currencyFormat || isFreeShipping || availableSizes || style || installments)) return res.status(400).send({ status: false, message: "Please input valid params to update!" });
-
-    if (title || title === "") {          // Nested If used here
-      if (!objectValue(title)) return res.status(400).send({ status: false, message: "Please enter title!" })
-      if (!strRegex(title)) return res.status(400).send({ status: false, message: "Please enter title in Alphabets only!" })
-    }        // 2nd V used above
-
-    let duplicateTitle = await productModel.findOne({ title })
-    if (duplicateTitle) return res.status(400).send({ status: false, message: "Product name is already in use!" })    // Duplicate Validation
-
-    if (description) {       // Nested If used here
-      if (!objectValue(description)) return res.status(400).send({ status: false, message: "Please enter description!" })
-    }        // 2nd V used above
-
-    if (price) {    // Nested If used here
-      if (!numberValue(price)) return res.status(400).send({ status: false, message: "Please enter price correctly!" }) // 2nd V used here
+    //valid parameters are given to update product details or not
+    if (!(title || description || price || currencyId || currencyFormat || isFreeShipping || availableSizes || style || installments)) {
+      return res.status(400).send({ status: false, message: "Please input valid params to update!" })
     }
 
+    //product title validation => if key is present then value must not be empty
+    if (title || title === "") {
+      if (!objectValue(title)) return res.status(400).send({ status: false, message: "Please enter title!" })
+      // product title must be in alphabate only
+      if (!strRegex(title)) return res.status(400).send({ status: false, message: "Please enter title in Alphabets only!" })
+    }
+    // product title must be unique => checking from DB that product already present in database or not
+    let duplicateTitle = await productModel.findOne({ title })
+    if (duplicateTitle) return res.status(400).send({ status: false, message: "Product name is already in use!" })
+
+    //Product description validation => if key is present then value must not be empty
+    if (description) {
+      if (!objectValue(description)) return res.status(400).send({ status: false, message: "Please enter description!" })
+    }
+
+    //Product price validation => if key is present then value must not be empty
+    if (price) {
+      if (!numberValue(price)) return res.status(400).send({ status: false, message: "Please enter price correctly!" })
+    }
+
+    //currencyId validation => if key is present then value must not be empty
     if (currencyId) {
       if (!objectValue(currencyId)) return res.status(400).send({ status: false, message: "Please enter currencyId!" })
-      // 2nd V used here
+      // currenctId must be "INR" only
       if (currencyId !== "INR") return res.status(400).send({ status: false, message: "Please enter currencyId in correct format!" })
     }
 
+    // currencyFormat validation => if key is present then value must not be empty
     if (currencyFormat) {
       if (!objectValue(currencyFormat)) return res.status(400).send({ status: false, message: "Please enter currencyFormat!" })
-      // 2nd V used here
+      // 2currencyFormat must be "₹" only
       if (currencyFormat !== "₹") return res.status(400).send({ status: false, message: "Please enter currencyFormat in correct format!" })
     }
 
+    // isFreeShipping validation => if key is present then value must not be empty and in boolean only
     if (isFreeShipping) {
       if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, message: "Please enter isFreeShipping correctly!" })
-    }     // 12th V used above
+    }
 
+    // availableSizes validation
     let availableSize
+    // if key is present then value must not be empty
     if (availableSizes) {
+      //covert availableSizes into upper case and split then with comma 
       availableSize = availableSizes.toUpperCase().split(",")
-
-      //  Enum validation on availableSizes
+      //availableSizes must be in enum (["S", "XS", "M", "X", "L", "XXL", "XL"])
       for (let i = 0; i < availableSize.length; i++) {
+        //in enum or not checking for availableSizes
         if (!(["S", "XS", "M", "X", "L", "XXL", "XL"]).includes(availableSize[i])) {
           return res.status(400).send({ status: false, message: `Sizes should be ${["S", "XS", "M", "X", "L", "XXL", "XL"]}` })
         }
       }
     }
 
+    // style validation => if key is present then value must not be empty
     if (style) {
       if (!objectValue(style)) return res.status(400).send({ status: false, message: "Please provide style correctly!" })
-    }     // 12th V used above
+    }
 
+    // installments validation => if key is present then value must not be empty
     if (installments) {
       if (!numberValue(installments)) return res.status(400).send({ status: false, message: "Please enter installments correctly!" })
-    }     // 12th V used above
+    }
 
+    //DB call and Update => update product details by requested body parameters 
     const updatedProducts = await productModel.findOneAndUpdate(
       { _id: productId },
       { $set: { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSize: availableSizes, style, installments } },
       { new: true }
     );
+    //Successfull upadte product details return response to body
     return res.status(200).send({ status: true, message: 'Success', data: updatedProducts });
 
-  } catch (err) {
-    return res.status(500).send({ status: false, message: err.message });
-  }
-};
-
-//----------------------------------------------------- [NINTH API]  --------------------------------------------------------------\\
-
-const deleteProductsbyId = async (req, res) => {
-
-  try {
-    const productId = req.params.productId
-
-    if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, message: "productId is invalid!" }) }   // 1st V used here
-
-    const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })    // DB Call
-    if (!findProductsbyId) { return res.status(404).send({ status: false, message: "Products not found or does not exist!" }) }
-
-    await productModel.findOneAndUpdate(
-      { _id: productId, isDeleted: false },
-      { $set: { isDeleted: true, deletedAt: new Date() } },
-      { new: true })
-
-    res.status(200).send({ status: true, message: "Product has been deleted successfully!" })
   } catch (err) {
     return res.status(500).send({ status: false, message: err.message });
   }
@@ -281,6 +317,35 @@ const deleteProductsbyId = async (req, res) => {
  
 module.exports = { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId }  
 
-//Destructuring & Exporting
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////      DELETE      PRODUCT       API     //////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
- 
+const deleteProductsbyId = async (req, res) => {
+
+  try {
+    //request productId from path params
+    const productId = req.params.productId
+    //productId validation => productId is valid ObjcetId or not
+    if (!isValidObjectId(productId)) { return res.status(400).send({ status: false, message: "productId is invalid!" }) }   // 1st V used here
+
+    //BD call => find by productId from productModel
+    const findProductsbyId = await productModel.findOne({ _id: productId, isDeleted: false })
+    //product not found in DB
+    if (!findProductsbyId) { return res.status(404).send({ status: false, message: "Products not found or does not exist!" }) }
+
+    //DB call and Update => isDeteled as false
+    await productModel.findOneAndUpdate(
+      { _id: productId, isDeleted: false },
+      { $set: { isDeleted: true, deletedAt: new Date() } },
+      { new: true })
+
+    //Successfull delete product return response to body
+    res.status(200).send({ status: true, message: "Product has been deleted successfully!" })
+  } catch (err) {
+    return res.status(500).send({ status: false, message: err.message });
+  }
+}
+
+// Destructuring & Exporting
+module.exports = { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId }
