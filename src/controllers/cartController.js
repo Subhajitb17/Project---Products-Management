@@ -167,12 +167,13 @@ const updateCart = async function (req, res) {
 
     if (!(removeProduct == 1 || removeProduct == 0)) return res.status(400).send({ status: false, message: "please mention 1 or 0 only in remove product" })
 
-    //****** if remove product : 1 *****/
     let cartItems
     let productQuantity
     let productItems
     let allPrice
     let allItems
+
+    //****** if remove product : 1 *****/
 
     if (removeProduct == 1) {
 

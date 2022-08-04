@@ -119,7 +119,13 @@ const updateOrder = async function (req, res) {
             
               return res.status(200).send({ status: true, message: 'Success', data: updatedOrder });
               
-        }        
+        }
+
+     
+
+        
+
+          
 
 } catch (error) {
     res.status(500).send({ status: false, data: error.message });
@@ -133,129 +139,66 @@ module.exports = { createOrder, updateOrder }  // Destructuring & Exporting
 
 
 
-const updatedOrder = async function (req, res) {
-    try {
-        data = req.body
-        userId = req.param.userId
+// const updatedOrder = async function (req, res) {
+//     try {
+//         data = req.body
+//         userId = req.param.userId
 
-        const { orderId, status } = data
+//         const { orderId, status } = data
 
-        //empty body validation
+//         //empty body validation
 
-        if (!validators.isValidBody(data)) { return res.status(400).send({ status: false, message: "Please Provide input in Request Body" }) }
+//         if (!validators.isValidBody(data)) { return res.status(400).send({ status: false, message: "Please Provide input in Request Body" }) }
 
-        // userId validation
-        if(!userId) { return res.status(400).send({ status: false, msg: " please mention userId in params" }) }
+//         // userId validation
+//         if(!userId) { return res.status(400).send({ status: false, msg: " please mention userId in params" }) }
 
-        if (!mongoose.isValidObjectId(userId)) { return res.status(400).send({ status: false, msg: "Invalid userId in params" }) }
+//         if (!mongoose.isValidObjectId(userId)) { return res.status(400).send({ status: false, msg: "Invalid userId in params" }) }
 
-        const searchUser = await userModel.findOne({ _id: userId });
-        if (!searchUser) { return res.status(400).send({ status: false, message: `user doesn't exists for ${userId}` }) }
+//         const searchUser = await userModel.findOne({ _id: userId });
+//         if (!searchUser) { return res.status(400).send({ status: false, message: `user doesn't exists for ${userId}` }) }
 
-        //orderId validation
+//         //orderId validation
 
-        if (!orderId) return res.status(400).send({ status: false, msg: "please mention order id" })
+//         if (!orderId) return res.status(400).send({ status: false, msg: "please mention order id" })
 
-        if (!mongoose.isValidObjectId(orderId)) { return res.status(400).send({ status: false, msg: "OrderId is not valid" }) }
-
-
-        //verifying does the order belong to user or not.
-
-        let isOrder = await orderModel.findOne({ userId: userId });
-        if (!isOrder) {
-            return res.status(400).send({ status: false, message: `No such order  belongs to ${userId} ` });
-        }
-        // cancellable validation 
-
-        if(isOrder.cancellable == false) return res.status(400).send({ status: false, msg: "You can not cancel this order" })
-        if(isOrder.status == "completed") return res.status(400).send({ status: false, msg: "You can not cancel this order now, it is completed" })
-        if(isOrder.status == "cancled") return res.status(400).send({ status: false, msg: "your order is cancled, place order again." })
-        //status validations
+//         if (!mongoose.isValidObjectId(orderId)) { return res.status(400).send({ status: false, msg: "OrderId is not valid" }) }
 
 
-        if (!status) {
-            return res.status(400).send({ status: false, message: " Please enter current status of the order." });
-        }
+//         //verifying does the order belong to user or not.
+
+//         let isOrder = await orderModel.findOne({ userId: userId });
+//         if (!isOrder) {
+//             return res.status(400).send({ status: false, message: `No such order  belongs to ${userId} ` });
+//         }
+//         // cancellable validation 
+
+//         if(isOrder.cancellable == false) return res.status(400).send({ status: false, msg: "You can not cancel this order" })
+//         if(isOrder.status == "completed") return res.status(400).send({ status: false, msg: "You can not cancel this order now, it is completed" })
+//         if(isOrder.status == "cancled") return res.status(400).send({ status: false, msg: "your order is cancled, place order again." })
+//         //status validations
 
 
-        if (!validators.isValidStatus(status)) {
-            return res.status(400).send({status: false, message: "Invalid status in request body. Choose either 'pending','completed', or 'cancelled'."});
-        }
-        if(status == "pending"){ return res.status(400).send({ status: false, message: "Your order is already pending" });}
+//         if (!status) {
+//             return res.status(400).send({ status: false, message: " Please enter current status of the order." });
+//         }
+
+
+//         if (!validators.isValidStatus(status)) {
+//             return res.status(400).send({status: false, message: "Invalid status in request body. Choose either 'pending','completed', or 'cancelled'."});
+//         }
+//         if(status == "pending"){ return res.status(400).send({ status: false, message: "Your order is already pending" });}
 
         
-        let updated = await orderModel.findOneAndUpdate({ _id: orderId }, { status:status }, { new: true })
-        return res.status(200).send({ status: true, message: "update successfull", data: updated })
+//         let updated = await orderModel.findOneAndUpdate({ _id: orderId }, { status:status }, { new: true })
+//         return res.status(200).send({ status: true, message: "update successfull", data: updated })
        
-    } catch (err) {
-        console.log(err)
-        return res.status(500).send({ status: false, message: "Error", error: err.message });
-    }
-}
+//     } catch (err) {
+//         console.log(err)
+//         return res.status(500).send({ status: false, message: "Error", error: err.message });
+//     }
+// }
 
 
 
-const updateCart = async function (req, res) {
-    try {
-  
-      const userId = req.params.userId;
-  
-      let bearerToken = req.headers.authorization;
-      let token = bearerToken.split(" ")[1]
-      let decodedToken = jwt.verify(token, "group73-project5")            // Authorization
-      if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
-  
-      let { cartId, productId, removeProduct } = req.body;
-  
-      if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide valid params to update!" });
-  
-      if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, message: "Please enter valid cartId!" });
-  
-      if (!isValidObjectId(productId)) return res.status(400).send({ status: false, message: "Please enter valid productId!" });
-  
-      if (removeProduct !== 1 || 0) return res.status(400).send({ status: false, message: "Please enter valid removeProduct value as 1 or 0!" });
-  
-      let findCartById = await cartModel.findById(cartId);
-  
-      if (!findCartById) return res.status(404).send({ status: false, message: "CartId doesnt exists!" });
-  
-      let findProductById = await productModel.findOne({ _id: productId, isDeleted: false, });
-  
-      if (!findProductById) return res.status(400).send({ status: false, message: "Product has been deleted or does not exist!" });
-  
-      let update = {};
-      let product = findCartById.items;
-      let quantity = 0;
-  
-      for (let i = 0; i < product.length; i++) {
-        if (product[i].productId.toString() == productId) {
-          quantity = product[i].quantity;
-          break;
-        }
-      }
-  
-      if (removeProduct == 0 || quantity == 1) {
-        update["$pull"] = { items: { productId: productId } }; //Used pull to remove an element from an array
-  
-        for (let i = 0; i < product.length; i++) {
-          if (product[i].productId.toString() == productId) {
-            update.totalPrice = findCartById.totalPrice - findProductById.price * product[i].quantity;
-            update.totalItems = findCartById.totalItems - 1;
-            break;
-          }
-        }
-      } else if (removeProduct == 1) {
-        for (let i = 0; i < product.length; i++) {
-          if (product[i].productId.toString() == productId) {
-            update[`items.${i}.quantity`] = findCartById.items[i].quantity - 1;
-            update.totalPrice = findCartById.totalPrice - findProductById.price;
-            break;
-          }
-        }
-      }
-      let updatedCart = await cartModel.findOneAndUpdate({ _id: cartId }, update, { new: true });
-      return res.status(200).send({ status: true, message: "Success", data: updatedCart });
-    } catch (err) {
-      return res.status(500).send({ status: false, message: err.message });
-    }
-  };
+
