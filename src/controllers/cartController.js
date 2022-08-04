@@ -76,7 +76,7 @@ const createCart = async function (req, res) {
             productId: productId,
             quantity: quantity,
           },
-        ],
+        ], 
         totalPrice: findProduct.price * quantity,
         totalItems: 1,
       };
@@ -93,7 +93,7 @@ const createCart = async function (req, res) {
       let arr = findCartOfUser.items;
 
       for (i in arr) {
-        if (arr[i].productId) {
+        if (arr[i].productId.toString()===productId) {
           arr[i].quantity += quantity;
           let updatedCart = {
             items: arr,
@@ -165,7 +165,7 @@ const updateCart = async function (req, res) {
     let quantity = 0;
 
     for (let i = 0; i < product.length; i++) {
-      if (product[i].productId == productId) {
+      if (product[i].productId.toString() == productId) {
         quantity = product[i].quantity;
         break;
       }
@@ -175,7 +175,7 @@ const updateCart = async function (req, res) {
       update["$pull"] = { items: { productId: productId } }; //Used pull to remove an element from an array
 
       for (let i = 0; i < product.length; i++) {
-        if (product[i].productId == productId) {
+        if (product[i].productId.toString() == productId) {
           update.totalPrice = findCartById.totalPrice - findProductById.price * product[i].quantity;
           update.totalItems = findCartById.totalItems - 1;
           break;
@@ -183,7 +183,7 @@ const updateCart = async function (req, res) {
       }
     } else if (removeProduct == 1) {
       for (let i = 0; i < product.length; i++) {
-        if (product[i].productId == productId) {
+        if (product[i].productId.toString() == productId) {
           update[`items.${i}.quantity`] = findCartById.items[i].quantity - 1;
           update.totalPrice = findCartById.totalPrice - findProductById.price;
           break;
