@@ -82,6 +82,14 @@ const createProduct = async (req, res) => {
         }
       }
     }
+   
+
+
+  //  {
+  //    let arr = req.body.availableSizes.trim().split(",")
+  //    console.log(arr)
+  //   req.body.availableSizes =  arr
+  // }
 
     // Style validation => if key is present then value must not be empty
     if (style) {
@@ -132,6 +140,7 @@ const getProducts = async (req, res) => {
 
     //product name validation
     if (name) {
+      productQuery.title = name 
       // product name validation => if key is present then value must not be empty
       if (!objectValue(name)) { return res.status(400).send({ status: false, message: "Product name is invalid!" }) }
       // product name must be in alphabate only
@@ -307,6 +316,8 @@ const updateProduct = async function (req, res) {
   }
 }
 
+ 
+// module.exports = { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId }  
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////      DELETE      PRODUCT       API     //////////////////////////////////////

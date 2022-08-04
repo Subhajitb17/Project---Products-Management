@@ -119,13 +119,7 @@ const updateOrder = async function (req, res) {
             
               return res.status(200).send({ status: true, message: 'Success', data: updatedOrder });
               
-        }
-
-     
-
-        
-
-          
+        }        
 
 } catch (error) {
     res.status(500).send({ status: false, data: error.message });

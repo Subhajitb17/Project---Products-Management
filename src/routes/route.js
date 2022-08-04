@@ -5,7 +5,7 @@ const {createProduct, getProducts, getProductsbyId, updateProduct, deleteProduct
 const {createCart, updateCart, getCartDetails, deleteCart} = require("../controllers/cartController");
 const {createOrder, updateOrder} = require("../controllers/orderController");
 const {authentication} = require("../middleware/auth")
-
+ 
 
 route.post("/register" , createUser)
 
@@ -16,7 +16,7 @@ route.get("/user/:userId/profile" , authentication, getUserDeatailsById)
 route.put("/user/:userId/profile" , authentication, updateUserDetails)
 
 
-route.post("/products" , createProduct)
+route.post("/products" , createProduct) 
 
 route.get("/products" , getProducts)
 
