@@ -52,8 +52,9 @@ const createOrder = async function (req, res) {
         let order = {userId:userId, items: cartItems.items,  totalPrice: cartItems.totalPrice, totalItems:cartItems.totalItems, totalQuantity:totalQuantity, cancellable: cancellable, status: status}
 
         let orderCreation = await orderModel.create(order)
+        await cartModel.findOneAndUpdate({userId:userId, isDeleted: false}, {$set: {items: [], totalPrice: 0, totalItems:0}} )
         return res.status(201).send({ status: true, message: `Order created successfully`, data: orderCreation });
-
+        
 
 } catch (error) {
     res.status(500).send({ status: false, data: error.message });  
@@ -100,32 +101,33 @@ const updateOrder = async function (req, res) {
         if (!isValidObjectId(orderId)) return res.status(400).send({ status: false, message: "Please provide valid orderId!" });
 
         const orderOfUser = await orderModel.findOne({_id: orderId, userId: userId ,isDeleted: false})
-        if(orderOfUser.userId !== userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
+        if(orderOfUser.userId != userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
         if(!orderOfUser) return res.status(400).send({ status: false, message: "No such order has been placed yet!" });
+  
 
+       if(orderOfUser.status == 'completed' || orderOfUser.status == 'cancled'){
+        return res.status(400).send({status: false, message: "Order already completed or cancelled"})
+       }
        
-        if(status !== "completed" || "cancled") return res.status(400).send({ status: false, message: "Status can be either completed or cancled!" });
-
-        else {
-            const updatedOrder = await orderModel.findOneAndUpdate(
-                { _id: orderId },
-                { $set: { status:status } },
-                { new: true }
-              );
-
-              if (updatedOrder.status == "completed" ) {
-                updatedOrder.splice(0,1)
+        if(orderOfUser.cancellable === true){
+          if(!(['completed','cancled'].includes(status))){
+            return res.status(400).send({ status: false, message: "Order status must be either 'Completed' or 'Cancelled'!" });
             }
-            
-              return res.status(200).send({ status: true, message: 'Success', data: updatedOrder });
-              
+          if(orderOfUser.status == "pending"){
+            let updateOrder = await orderModel.findOneAndUpdate({orderId: orderId}, {$set: {status: status}}, {new: true})
+            return res.status(200).send({status: true, message: "Success", data: updateOrder})
+          }
         }
 
-     
-
-        
-
-          
+        if(orderOfUser.cancellable === false){
+          if(!(['completed'].includes(status))){
+            return res.status(400).send({ status: false, message: "Order status must be 'Completed'!" });
+            }
+          if(orderOfUser.status == "pending"){
+            let updateOrder = await orderModel.findOneAndUpdate({orderId: orderId}, {$set: {status: status}}, {new: true})
+            return res.status(200).send({status: true, message: "Success", data: updateOrder})
+          }
+        }
 
 } catch (error) {
     res.status(500).send({ status: false, data: error.message });
@@ -199,6 +201,51 @@ module.exports = { createOrder, updateOrder }  // Destructuring & Exporting
 //     }
 // }
 
+
+
+// const orderUpdate = async (req, res) => {
+//     try {
+//       let data = req.body;
+  
+//       //checking for a valid user input
+//       if (!isValidRequestBody(data)) {
+//         return res.status(400).send({ status: false, message: "Please provide valid request body" });
+//     }
+  
+//       //checking for valid orderId
+//       if(!isValid(data.orderId)) return res.status(400).send({ status: false, message: 'OrderId is required and should not be an empty string' });
+//       if(!isValidObjectId(data.orderId)) return res.status(400).send({ status: false, message: 'Enter a valid orderId' });
+  
+//       //checking if cart exists or not
+//       let findOrder = await orderModel.findOne({ _id: data.orderId, isDeleted: false });
+//       if(!findOrder) return res.status(404).send({ status: false, message: `No order found with this  orderid` })
+  
+      
+//       if(!isValid(data.status)) return res.status(400).send({ status: false, message: 'Status is required and should not be an empty string' });
+  
+//       //validating if status is in valid format
+//       if(!(['Pending','Completed','Cancelled'].includes(data.status))) return res.status(400).send({ status: false, message: "Order status should be one of this 'Pending','Completed' and 'Cancelled'" });
+  
+//       let conditions = {};
+  
+//       if(data.status == "Cancelled") {
+//         //checking if the order is cancellable or not
+//         if(!findOrder.cancellable) return res.status(400).send({ status: false, message: "cancelletion is false:You cannot cancel this order" });
+//         conditions.status = data.status;
+//       }else{
+//         conditions.status = data.status;
+//       }
+      
+//       let orderdata = await orderModel.findByIdAndUpdate(
+//         {_id: findOrder._id},
+//         conditions,
+//         {new: true}
+//       )
+//       res.status(200).send({ status: true, message: "Order updated Successfully", data: orderdata});
+//     } catch (err) {
+//       res.status(500).send({ status: false, error: err.message })
+//     }
+//   }
 
 
 
