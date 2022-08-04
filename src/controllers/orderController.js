@@ -26,7 +26,7 @@ const createOrder = async function (req, res) {
          
         // let duplicateUserId = await cartModel.findById(userId)
         const cartItems = await cartModel.findOne({_id: cartId, userId: userId ,isDeleted: false})
-        if(cartItems.userId !== userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
+        if(cartItems.userId != userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
         // let cartItems = await cartModel.findOne({_id: cartId, isDeleted: false})
         if(!cartItems) return res.status(400).send({ status: false, message: "Either cart is empty or does not exist!" });
 
