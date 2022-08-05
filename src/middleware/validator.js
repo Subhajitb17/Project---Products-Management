@@ -87,7 +87,7 @@ const isValidArray = (value) => {
 // 11th Validator ==>
 
 const booleanValue = (value) => {
-  if (typeof value === "undefined" || value === null || typeof value === "number" || typeof value === true) return false;
+  if (typeof value === "undefined" || value === null || typeof value === "number") return false;
   if (typeof value === false && value.toString().trim().length === 0) return false;
   return true;
 };

@@ -64,7 +64,7 @@ const createProduct = async (req, res) => {
 
     //isFreeShipping Validation => if key is present then value must not be empty and in boolean only
     if (isFreeShipping || isFreeShipping === "") {
-      if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, message: "Please enter isFreeShipping!" })
+      if (isFreeShipping !== true || false) return res.status(400).send({ status: false, message: "Please enter isFreeShipping in correct format!" })
     }
 
     // availableSizes validation
@@ -220,7 +220,7 @@ const updateProduct = async function (req, res) {
     const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments } = req.query
 
     //something given to update product details or not 
-    if (!keyValue(req.query)) return res.status(400).send({ status: false, message: "Please provide something to update!" });
+    if (!keyValue(req.query)) return res.status(400).send({ status: false, message: "Please provide valid field to update!" });
 
     //upload product image(a file) by aws
     let files = req.files
@@ -273,8 +273,8 @@ const updateProduct = async function (req, res) {
     }
 
     // isFreeShipping validation => if key is present then value must not be empty and in boolean only
-    if (isFreeShipping) {
-      if (!booleanValue(isFreeShipping)) return res.status(400).send({ status: false, message: "Please enter isFreeShipping correctly!" })
+    if (isFreeShipping || isFreeShipping === "") {
+      if (isFreeShipping !== true || false) return res.status(400).send({ status: false, message: "Please enter isFreeShipping in correct format!" })
     }
 
     // availableSizes validation
