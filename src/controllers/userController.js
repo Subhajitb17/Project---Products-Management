@@ -64,7 +64,7 @@ const createUser = async (req, res) => {
         //Password validation => password is mandatory
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "Please enter password!" })
         //Password must be 8-50 characters 
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters and in alphabets and numbers only!" })
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 15 characters and in alphabets and numbers only!" })
         //creating hash password by using bcrypt
         const passwordHash = await bcrypt.hash(password, 10);
         password = passwordHash
@@ -122,19 +122,17 @@ const loginUser = async function (req, res) {
         //Password validation => Password is mandatory for login
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })
         //Password must be 8-50 characters 
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters and in alphabets and numbers only!" })                      // 8th V used here
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 15 characters and in alphabets and numbers only!" })                      // 8th V used here
 
         //Email Validation => checking from DB that email present in DB or not
         let user = await userModel.findOne({ email: email })
-        if (!user) return res.status(400).send({ status: false, message: "email is not present in the Database!" })
+        if (!user) return res.status(404).send({ status: false, message: `${email} is not present in the Database!`})
 
         //password check by comparing request body password and the password from bcrypt hash password
         let passwordCheck = await bcrypt.compare(req.body.password, user.password)
         //request body password and bcrypt hash password not match
         if (!passwordCheck) return res.status(400).send({ status: false, message: "password is not correct!" })
 
-        //Bad Request => Email or password is invalid 
-        if (!user) { return res.status(404).send({ status: false, message: "email or the password is invalid!" }) }
 
         //Create Token by jsonwebtoken
         let token = jwt.sign(
@@ -280,7 +278,7 @@ const updateUserDetails = async function (req, res) {
             //if key present then value must not be empty
             if (!objectValue(password)) return res.status(400).send({ status: false, message: "Please enter password!" })
             ////Password must be 8-50 characters 
-            if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 50 characters!" })
+            if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 15 characters!" })
             //creating hash password by using bcrypt
             const passwordHash = await bcrypt.hash(password, 10);
             password = passwordHash

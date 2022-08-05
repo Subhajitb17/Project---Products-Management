@@ -50,7 +50,7 @@ const mobileRegex = (value) => {
 // 7th Validator ==>
 
 const passwordRegex = (value) => {
-  let passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,50}$/
+  let passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,15}$/
   ;
   if (passwordRegex.test(value))
     return true;
