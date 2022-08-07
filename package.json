@@ -11,7 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/Saswath1403/Project-Products-Management.git"
   },
-  "author": "",
+  "author": "Subhajit Bokshi, Saswath Singh, Soumyaprakash Ojha, Unmesh Dhore",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Saswath1403/Project-Products-Management/issues"
@@ -26,5 +26,6 @@
     "mongoose": "^6.4.6",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^2.0.19"
-  }
+  },
+  "devDependencies": {}
 }
