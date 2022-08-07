@@ -28,7 +28,7 @@ const keyValue = (value) => {
 // 4th Validator ==>
 
 const nameRegex = (value) => {
-  let nameRegex =  /^(?![\. ])[a-zA-Z\. ]+(?<! )$/;
+  let nameRegex = /^(?![\. ])[a-zA-Z\. ]+(?<! )$/;
   if (nameRegex.test(value)) return true;
 };
 
@@ -51,7 +51,7 @@ const mobileRegex = (value) => {
 
 const passwordRegex = (value) => {
   let passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,15}$/
-  ;
+    ;
   if (passwordRegex.test(value))
     return true;
 }
@@ -77,10 +77,10 @@ const strRegex = (value) => {
 
 const isValidArray = (value) => {
   if (Array.isArray(value)) {
-      for (let i = 0; i < value.length; i++) {
-          if (value[i].trim().length === 0 || typeof (value[i]) !== "string" || value.trim().length === 0) { return false }
-      }
-      return true
+    for (let i = 0; i < value.length; i++) {
+      if (value[i].trim().length === 0 || typeof (value[i]) !== "string" || value.trim().length === 0) { return false }
+    }
+    return true
   } else { return false }
 }
 
@@ -102,7 +102,7 @@ const numberValue = (value) => {
 
 // 13th Validator ==>
 
-const isValidDate =function(date){
+const isValidDate = function (date) {
   const isValidDate = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/
   return isValidDate.test(date)
 }
@@ -126,10 +126,9 @@ const numberValue2 = (value) => {
 
 //Validation for Quantity
 const validQuantity = function isInteger(value) {
-  if(value < 1) return false
-   if(value % 1 == 0 ) return true
+  if (value < 1) return false
+  if (value % 1 == 0) return true
 }
 
 
 module.exports = { isValidObjectId, objectValue, nameRegex, emailRegex, keyValue, mobileRegex, passwordRegex, pincodeRegex, isValidArray, booleanValue, numberValue, isValidDate, strRegex, urlRegex, numberValue2, validQuantity };     // EXPORTING THEM
-                                                                                                        

@@ -106,7 +106,7 @@ const createUser = async (req, res) => {
 /////////////////////////////////       LOGIN    USER     API       //////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const loginUser = async function (req, res) { 
+const loginUser = async function (req, res) {
     try {
         // Destructuring
         let { email, password } = req.body
@@ -126,7 +126,7 @@ const loginUser = async function (req, res) {
 
         //Email Validation => checking from DB that email present in DB or not
         let user = await userModel.findOne({ email: email })
-        if (!user) return res.status(404).send({ status: false, message: `${email} is not present in the Database!`})
+        if (!user) return res.status(404).send({ status: false, message: `${email} is not present in the Database!` })
 
         //password check by comparing request body password and the password from bcrypt hash password
         let passwordCheck = await bcrypt.compare(req.body.password, user.password)
@@ -201,7 +201,7 @@ const updateUserDetails = async function (req, res) {
         //request userId from path params
         const userId = req.params.userId;
 
-        const address = req.body.address 
+        const address = req.body.address
 
         //userId validation => userId is valid ObjcetId or not
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "userId is invalid!" })
@@ -209,7 +209,7 @@ const updateUserDetails = async function (req, res) {
         //Authorization validation
         //request bearer token from header for authorization
         let bearerToken = req.headers.authorization;
-        //split barer token
+        //split barer token and select second position element
         let token = bearerToken.split(" ")[1]
         //decoded token to verify with secrect key
         let decodedToken = jwt.verify(token, "group73-project5")
@@ -221,7 +221,7 @@ const updateUserDetails = async function (req, res) {
         //user not found in DB
         if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }
 
-        let {fname, lname, email, phone, password, profileImage } = req.body;  // Destructuring
+        let { fname, lname, email, phone, password, profileImage } = req.body;  // Destructuring
 
 
         //upload profile image(a file) by aws
@@ -259,6 +259,7 @@ const updateUserDetails = async function (req, res) {
             if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })
             //Unique Email Validation => checking from DB that email present in DB or not    
             let duplicateEmail = await userModel.findOne({ email })
+            //email already used
             if (duplicateEmail) return res.status(400).send({ status: false, message: "email is already in use!" })
         }
 
@@ -270,6 +271,7 @@ const updateUserDetails = async function (req, res) {
             if (!mobileRegex(phone)) return res.status(400).send({ status: false, message: "phone number is invalid!" })
             //Unique phone number Validation => checking from DB that phone number present in DB or not 
             let duplicatePhone = await userModel.findOne({ phone })
+            //phone no already used
             if (duplicatePhone) return res.status(400).send({ status: false, message: "Phone number is already in use!" })
         }
 
