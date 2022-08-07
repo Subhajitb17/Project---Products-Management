@@ -1,6 +1,6 @@
 const productModel = require("../models/productModel");
 const aws = require("../aws/s3")
-const { objectValue, keyValue, numberValue, isValidObjectId, strRegex, booleanValue } = require("../middleware/validator")  // IMPORTING VALIDATORS
+const { objectValue, keyValue, numberValue, isValidObjectId, strRegex, isValidEnum } = require("../middleware/validator")  // IMPORTING VALIDATORS
 
 
 
@@ -217,10 +217,11 @@ const updateProduct = async function (req, res) {
     if (!findProductsbyId) { return res.status(404).send({ status: false, message: "Products not found or does not exist!" }) }
 
     // Destructuring
-    const { title, description, price, currencyId, currencyFormat, isFreeShipping, availableSizes, style, installments } = req.query
+    const { title, description, price, currencyId, currencyFormat, isFreeShipping, style, installments } = req.body
+    let availableSizes = req.body.availableSizes
 
     //something given to update product details or not 
-    if (!keyValue(req.query)) return res.status(400).send({ status: false, message: "Please provide valid field to update!" });
+    if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide valid field to update!" });
 
     //upload product image(a file) by aws
     let files = req.files
@@ -274,22 +275,20 @@ const updateProduct = async function (req, res) {
 
     // isFreeShipping validation => if key is present then value must not be empty and in boolean only
     if (isFreeShipping || isFreeShipping === "") {
-      if (isFreeShipping !== true || false) return res.status(400).send({ status: false, message: "Please enter isFreeShipping in correct format!" })
+      if (!(isFreeShipping === "true" || "false")) return res.status(400).send({ status: false, message: "Please enter isFreeShipping in correct format!" })
     }
 
-    // availableSizes validation
-    let availableSize
-    // if key is present then value must not be empty
+      // availableSizes validation
+
     if (availableSizes) {
+      //availableSizes validation => if key is present then value must not be empty
+      if (!(objectValue(availableSizes))) return res.status(400).send({ status: false, message: "Please provide availableSize!" })
       //covert availableSizes into upper case and split then with comma 
-      availableSize = availableSizes.toUpperCase().split(",")
+      if (availableSizes.toUpperCase().trim().split(",").map(value => isValidEnum(value)).filter(item => item == false).length !== 0)
+      return res.status(400).send({ status: false, message: "Sizes should be among 'S', 'XS', 'M', 'X', 'L', 'XXL', 'XL'!" })
       //availableSizes must be in enum (["S", "XS", "M", "X", "L", "XXL", "XL"])
-      for (let i = 0; i < availableSize.length; i++) {
-        //in enum or not checking for availableSizes
-        if (!(["S", "XS", "M", "X", "L", "XXL", "XL"]).includes(availableSize[i])) {
-          return res.status(400).send({ status: false, message: `Sizes should be ${["S", "XS", "M", "X", "L", "XXL", "XL"]}` })
-        }
-      }
+      let availableSize = availableSizes.toUpperCase().trim().split(",").map(value => value.trim()) //converting in array
+      availableSizes = availableSize
     }
 
     // style validation => if key is present then value must not be empty
@@ -305,7 +304,7 @@ const updateProduct = async function (req, res) {
     //DB call and Update => update product details by requested body parameters 
     const updatedProducts = await productModel.findOneAndUpdate(
       { _id: productId },
-      { $set: { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, availableSize: availableSizes, style, installments } },
+      { $set: { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, style, installments },$addToSet: { availableSizes } },
       { new: true }
     );
     //Successfull upadte product details return response to body
@@ -317,7 +316,7 @@ const updateProduct = async function (req, res) {
 }
 
  
-// module.exports = { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId }  
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////      DELETE      PRODUCT       API     //////////////////////////////////////
@@ -351,3 +350,5 @@ const deleteProductsbyId = async (req, res) => {
 
 // Destructuring & Exporting
 module.exports = { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId }
+ 
+

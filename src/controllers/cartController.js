@@ -59,7 +59,7 @@ const createCart = async function (req, res) {
       let duplicateCart = await cartModel.findOne({ _id: cartId, isDeleted: false })
 
       if (!duplicateCart) {
-        return res.status(400).send({ status: false, message: "cartId doesn't exists!" })
+        return res.status(400).send({ status: false, message: "cart does not exists!" })
       }
     }
 
@@ -135,6 +135,7 @@ const createCart = async function (req, res) {
 const updateCart = async function (req, res) {
   try {
     const userId = req.params.userId;
+    if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
 
     let bearerToken = req.headers.authorization;
     let token = bearerToken.split(" ")[1]

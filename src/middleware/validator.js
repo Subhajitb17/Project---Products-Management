@@ -130,6 +130,16 @@ const validQuantity = function isInteger(value) {
    if(value % 1 == 0 ) return true
 }
 
+const isValidSize = (size) => {
+  let correctSize = ["S", "XS", "M", "X", "L", "XXL", "XL"]
+  return (correctSize.includes(size))
+}
 
-module.exports = { isValidObjectId, objectValue, nameRegex, emailRegex, keyValue, mobileRegex, passwordRegex, pincodeRegex, isValidArray, booleanValue, numberValue, isValidDate, strRegex, urlRegex, numberValue2, validQuantity };     // EXPORTING THEM
+const isValidEnum = function (value) {
+  let availableSizes = ["S", "XS", "M", "X", "L", "XXL", "XL"]
+  return availableSizes.includes(value)
+}
+
+
+module.exports = { isValidObjectId, objectValue, nameRegex, emailRegex, keyValue, mobileRegex, passwordRegex, pincodeRegex, isValidArray, booleanValue, numberValue, isValidDate, strRegex, urlRegex, numberValue2, validQuantity, isValidSize, isValidEnum };     // EXPORTING THEM
                                                                                                         
