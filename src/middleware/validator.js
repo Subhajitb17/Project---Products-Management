@@ -130,10 +130,10 @@ const validQuantity = function isInteger(value) {
    if(value % 1 == 0 ) return true
 }
 
-const isValidSize = (size) => {
-  let correctSize = ["S", "XS", "M", "X", "L", "XXL", "XL"]
-  return (correctSize.includes(size))
-}
+// const isValidSize = (size) => {
+//   let correctSize = ["S", "XS", "M", "X", "L", "XXL", "XL"]
+//   return (correctSize.includes(size))
+// }
 
 const isValidEnum = function (value) {
   let availableSizes = ["S", "XS", "M", "X", "L", "XXL", "XL"]
