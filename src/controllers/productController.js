@@ -83,14 +83,6 @@ const createProduct = async (req, res) => {
       }
     }
 
-
-
-    //  {
-    //    let arr = req.body.availableSizes.trim().split(",")
-    //    console.log(arr)
-    //   req.body.availableSizes =  arr
-    // }
-
     // Style validation => if key is present then value must not be empty
     if (style) {
       if (!objectValue(style)) return res.status(400).send({ status: false, message: "Please enter style!" })
@@ -193,8 +185,8 @@ const getProductsbyId = async (req, res) => {
 
     //Successfull execution response with productDetails
     res.status(200).send({ status: true, message: 'Product Details', data: findProductsbyId })
-
-  } catch (error) {
+  }
+  catch (error) {
     res.status(500).send({ status: false, message: error.message });
   }
 }
@@ -278,14 +270,13 @@ const updateProduct = async function (req, res) {
       if (!(isFreeShipping === "true" || "false")) return res.status(400).send({ status: false, message: "Please enter isFreeShipping in correct format!" })
     }
 
-      // availableSizes validation
-
+    // availableSizes validation
     if (availableSizes) {
       //availableSizes validation => if key is present then value must not be empty
       if (!(objectValue(availableSizes))) return res.status(400).send({ status: false, message: "Please provide availableSize!" })
       //covert availableSizes into upper case and split then with comma 
       if (availableSizes.toUpperCase().trim().split(",").map(value => isValidEnum(value)).filter(item => item == false).length !== 0)
-      return res.status(400).send({ status: false, message: "Sizes should be among 'S', 'XS', 'M', 'X', 'L', 'XXL', 'XL'!" })
+        return res.status(400).send({ status: false, message: "Sizes should be among 'S', 'XS', 'M', 'X', 'L', 'XXL', 'XL'!" })
       //availableSizes must be in enum (["S", "XS", "M", "X", "L", "XXL", "XL"])
       let availableSize = availableSizes.toUpperCase().trim().split(",").map(value => value.trim()) //converting in array
       availableSizes = availableSize
@@ -304,13 +295,14 @@ const updateProduct = async function (req, res) {
     //DB call and Update => update product details by requested body parameters 
     const updatedProducts = await productModel.findOneAndUpdate(
       { _id: productId },
-      { $set: { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, style, installments },$addToSet: { availableSizes } },
+      { $set: { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, style, installments }, $addToSet: { availableSizes } },
       { new: true }
     );
     //Successfull upadte product details return response to body
     return res.status(200).send({ status: true, message: 'Success', data: updatedProducts });
 
-  } catch (err) {
+  }
+  catch (err) {
     return res.status(500).send({ status: false, message: err.message });
   }
 }
@@ -342,12 +334,13 @@ const deleteProductsbyId = async (req, res) => {
 
     //Successfull delete product return response to body
     res.status(200).send({ status: true, message: "Product has been deleted successfully!" })
-  } catch (err) {
+  }
+  catch (err) {
     return res.status(500).send({ status: false, message: err.message });
   }
 }
 
 // Destructuring & Exporting
 module.exports = { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId }
- 
+
 

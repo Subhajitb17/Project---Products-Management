@@ -71,7 +71,6 @@ const createUser = async (req, res) => {
 
 
         // Address validation => address is mandatory
-
         if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
 
         // shipping address validation
@@ -122,7 +121,7 @@ const loginUser = async function (req, res) {
         //Password validation => Password is mandatory for login
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "password is not present!" })
         //Password must be 8-50 characters 
-        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 15 characters and in alphabets and numbers only!" })                      // 8th V used here
+        if (!passwordRegex(password)) return res.status(400).send({ status: false, message: "Password must be 8 to 15 characters and in alphabets and numbers only!" })
 
         //Email Validation => checking from DB that email present in DB or not
         let user = await userModel.findOne({ email: email })
@@ -174,7 +173,7 @@ const getUserDeatailsById = async (req, res) => {
         let bearerToken = req.headers.authorization;
         //split bearerToken
         let token = bearerToken.split(" ")[1]
-        //decoded token to verify with secrect key
+        //decoded token verify with secrect key
         let decodedToken = jwt.verify(token, "group73-project5")
         //userId from token and userId from params not match
         if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
@@ -186,7 +185,8 @@ const getUserDeatailsById = async (req, res) => {
 
         //Successfull execution response with userDetails
         res.status(200).send({ status: true, data: findUsersbyId })
-    } catch (err) {
+    }
+    catch (err) {
         return res.status(500).send({ status: false, message: err.message });
     }
 }
@@ -211,7 +211,7 @@ const updateUserDetails = async function (req, res) {
         let bearerToken = req.headers.authorization;
         //split barer token and select second position element
         let token = bearerToken.split(" ")[1]
-        //decoded token to verify with secrect key
+        //decoded token verify with secrect key
         let decodedToken = jwt.verify(token, "group73-project5")
         //userId from token and userId from params not match
         if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
@@ -222,7 +222,6 @@ const updateUserDetails = async function (req, res) {
         if (!findUsersbyId) { return res.status(404).send({ status: false, message: "User details not found or does not exist!" }) }
 
         let { fname, lname, email, phone, password, profileImage } = req.body;  // Destructuring
-
 
         //upload profile image(a file) by aws
         //request profile image from body
@@ -290,8 +289,6 @@ const updateUserDetails = async function (req, res) {
         if (address) {
             if (!objectValue(address)) return res.status(400).send({ status: false, message: "Please enter your address!" })
 
-
-
             // shipping address validation
             if (address.shipping) {
                 let Shipping = address.shipping
@@ -307,7 +304,6 @@ const updateUserDetails = async function (req, res) {
                     if (!pincodeRegex(Shipping.pincode)) return res.status(400).send({ status: false, message: "Shipping pincode is invalid!" });
                 }
             }
-
 
             // billing address validation
             if (address.billing) {
@@ -336,10 +332,12 @@ const updateUserDetails = async function (req, res) {
         //Successfull upadte user details return response to body
         return res.status(200).send({ status: true, message: 'Success', data: updatedUserDetails });
 
-    } catch (err) {
+    }
+    catch (err) {
         return res.status(500).send({ status: false, message: err.message });
     }
 };
+
 
 // Destructuring & Exporting modules
 module.exports = { createUser, loginUser, getUserDeatailsById, updateUserDetails }  

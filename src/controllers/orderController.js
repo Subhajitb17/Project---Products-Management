@@ -20,7 +20,7 @@ const createOrder = async function (req, res) {
     let bearerToken = req.headers.authorization;
     //split barer token and select second position element
     let token = bearerToken.split(" ")[1]
-    //decoded token to verify with secrect key
+    //decoded token verify with secrect key
     let decodedToken = jwt.verify(token, "group73-project5")
     //userId from token and userId from params not match
     if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
@@ -96,7 +96,7 @@ const updateOrder = async function (req, res) {
     let bearerToken = req.headers.authorization;
     //split barer token and select second position element
     let token = bearerToken.split(" ")[1]
-    //decoded token to verify with secrect key
+    //decoded token verify with secrect key
     let decodedToken = jwt.verify(token, "group73-project5")
     //userId from token and userId from params not match
     if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
