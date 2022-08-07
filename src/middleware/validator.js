@@ -141,5 +141,5 @@ const isValidEnum = function (value) {
 }
 
 
-module.exports = { isValidObjectId, objectValue, nameRegex, emailRegex, keyValue, mobileRegex, passwordRegex, pincodeRegex, isValidArray, booleanValue, numberValue, isValidDate, strRegex, urlRegex, numberValue2, validQuantity, isValidSize, isValidEnum };     // EXPORTING THEM
+module.exports = { isValidObjectId, objectValue, nameRegex, emailRegex, keyValue, mobileRegex, passwordRegex, pincodeRegex, isValidArray, booleanValue, numberValue, isValidDate, strRegex, urlRegex, numberValue2, validQuantity, isValidEnum };     // EXPORTING THEM
                                                                                                         
