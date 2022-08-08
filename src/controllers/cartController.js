@@ -117,7 +117,7 @@ const createCart = async function (req, res) {
           //DB call and Update => update product details in cart by requested body parameters 
           let responseData = await cartModel.findOneAndUpdate({ _id: findCartOfUser._id }, updatedCart, { new: true });
           //Successfull upadte products in cart details return response to body
-          return res.status(201).send({ status: true, message: `Product added successfully`, data: responseData });
+          return res.status(200).send({ status: true, message: `Product added successfully`, data: responseData });
 
         }
       }
@@ -129,7 +129,7 @@ const createCart = async function (req, res) {
       //DB call and Update => update product details in cart by requested body parameters
       let responseData = await cartModel.findOneAndUpdate({ _id: findCartOfUser._id }, updatedCart, { new: true });
       //Successfull upadate products in cart details return response to body
-      return res.status(201).send({ status: true, message: `Product added successfully`, data: responseData });
+      return res.status(200).send({ status: true, message: `Product added successfully`, data: responseData });
     }
   }
   catch (error) {
