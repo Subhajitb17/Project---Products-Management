@@ -114,7 +114,7 @@ const updateOrder = async function (req, res) {
     //DB call => find order details from orderModel by userId and orderId
     const orderOfUser = await orderModel.findOne({ _id: orderId, userId: userId, isDeleted: false })
     //userId not present in the DB
-    if (orderOfUser.userId != userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
+    if (orderOfUser.userId != userId) return res.status(404).send({ status: false, message: `${userId} is not present in the DB!` });
     // order not present in the DB means order not placed yet
     if (!orderOfUser) return res.status(400).send({ status: false, message: "No such order has been placed yet!" });
 

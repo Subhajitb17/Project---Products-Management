@@ -37,7 +37,7 @@ const createProduct = async (req, res) => {
     if (!strRegex(title)) return res.status(400).send({ status: false, message: "Please enter title in alphabets only!" })
     // product title must be unique => checking from DB that product already present in database or not
     let duplicateTitle = await productModel.findOne({ title })
-    if (duplicateTitle) return res.status(400).send({ status: false, message: "title is already in use!" })
+    if (duplicateTitle) return res.status(404).send({ status: false, message: "title is already in use!" })
 
     //Product description validation => description is mandatory
     if (!objectValue(description)) return res.status(400).send({ status: false, message: "Please enter description!" })

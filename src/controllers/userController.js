@@ -36,7 +36,7 @@ const createUser = async (req, res) => {
         if (!emailRegex(email)) return res.status(400).send({ status: false, message: "email is invalid!" })
         // Email must be unique => checking from DB that email already registered or not
         let duplicateEmail = await userModel.findOne({ email })
-        if (duplicateEmail) return res.status(400).send({ status: false, message: "email is already registered!" })
+        if (duplicateEmail) return res.status(404).send({ status: false, message: "email is already registered!" })
 
         //upload Profile Image(a file) by aws in S3
         // request profile image from body
@@ -59,7 +59,7 @@ const createUser = async (req, res) => {
         if (!mobileRegex(phone)) return res.status(400).send({ status: false, message: "phone number is invalid!" })
         //phone must must be unique => checking from DB that phone number already registered or not
         let duplicatePhone = await userModel.findOne({ phone })
-        if (duplicatePhone) return res.status(400).send({ status: false, message: "phone number is already registered!" })
+        if (duplicatePhone) return res.status(404).send({ status: false, message: "phone number is already registered!" })
 
         //Password validation => password is mandatory
         if (!objectValue(password)) return res.status(400).send({ status: false, message: "Please enter password!" })
@@ -259,7 +259,7 @@ const updateUserDetails = async function (req, res) {
             //Unique Email Validation => checking from DB that email present in DB or not    
             let duplicateEmail = await userModel.findOne({ email })
             //email already used
-            if (duplicateEmail) return res.status(400).send({ status: false, message: "email is already in use!" })
+            if (duplicateEmail) return res.status(404).send({ status: false, message: "email is already in use!" })
         }
 
         //Phone number validation if present
@@ -271,7 +271,7 @@ const updateUserDetails = async function (req, res) {
             //Unique phone number Validation => checking from DB that phone number present in DB or not 
             let duplicatePhone = await userModel.findOne({ phone })
             //phone no already used
-            if (duplicatePhone) return res.status(400).send({ status: false, message: "Phone number is already in use!" })
+            if (duplicatePhone) return res.status(404).send({ status: false, message: "Phone number is already in use!" })
         }
 
         //Password validation
