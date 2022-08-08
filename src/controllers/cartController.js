@@ -178,7 +178,7 @@ const updateCart = async function (req, res) {
     if (cart.items.length == 0) { return res.status(400).send({ status: false, message: "Nothing left to update!" }) }
 
     //productId validation => productId is mandatory
-    if (!productId) return res.status(400).send({ status: false, message: "Please enter productId!" })
+    if (!objectValue(productId)) return res.status(400).send({ status: false, message: "Please enter productId!" })
     //productId must be a valid objcetId
     if (!isValidObjectId(productId)) return res.status(400).send({ status: false, message: "Please enter valid productId!" })
     //DB call => find product from productModel by productId
