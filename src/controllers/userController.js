@@ -168,16 +168,6 @@ const getUserDeatailsById = async (req, res) => {
         //UserId is valid ObjectId or not
         if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }
 
-        //Authorization Validation
-        //request bearer token from header for authorization
-        let bearerToken = req.headers.authorization;
-        //split bearerToken
-        let token = bearerToken.split(" ")[1]
-        //decoded token verify with secrect key
-        let decodedToken = jwt.verify(token, "group73-project5")
-        //userId from token and userId from params not match
-        if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
-
         //DB Call => find by userId from userModel
         let findUsersbyId = await userModel.findOne({ _id: userId })
         //user not found in DB
@@ -205,16 +195,6 @@ const updateUserDetails = async function (req, res) {
 
         //userId validation => userId is valid ObjcetId or not
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "userId is invalid!" })
-
-        //Authorization validation
-        //request bearer token from header for authorization
-        let bearerToken = req.headers.authorization;
-        //split barer token and select second position element
-        let token = bearerToken.split(" ")[1]
-        //decoded token verify with secrect key
-        let decodedToken = jwt.verify(token, "group73-project5")
-        //userId from token and userId from params not match
-        if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
         //DB call => find by userId from userModel
         let findUsersbyId = await userModel.findOne({ _id: userId })

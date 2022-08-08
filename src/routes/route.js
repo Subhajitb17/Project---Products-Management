@@ -4,14 +4,14 @@ const { createUser, loginUser, getUserDeatailsById, updateUserDetails } = requir
 const { createProduct, getProducts, getProductsbyId, updateProduct, deleteProductsbyId } = require("../controllers/productController");
 const { createCart, updateCart, getCartDetails, deleteCart } = require("../controllers/cartController");
 const { createOrder, updateOrder } = require("../controllers/orderController");
-const { authentication } = require("../middleware/auth")
+const { authentication, authorisation } = require("../middleware/auth")
 
 
 //******************* USERS APIs ***************************// 
 route.post("/register", createUser)
 route.post("/login", loginUser)
-route.get("/user/:userId/profile", authentication, getUserDeatailsById)
-route.put("/user/:userId/profile", authentication, updateUserDetails)
+route.get("/user/:userId/profile", authentication, authorisation, getUserDeatailsById)
+route.put("/user/:userId/profile", authentication, authorisation, updateUserDetails)
 
 //******************* PRODUCTS APIs ***************************// 
 route.post("/products", createProduct)
@@ -21,15 +21,15 @@ route.put("/products/:productId", updateProduct)
 route.delete("/products/:productId", deleteProductsbyId)
 
 //******************* CARTS APIs ***************************// 
-route.post("/users/:userId/cart", authentication, createCart)
-route.put("/users/:userId/cart", authentication, updateCart)
-route.get("/users/:userId/cart", authentication, getCartDetails)
-route.delete("/users/:userId/cart", authentication, deleteCart)
+route.post("/users/:userId/cart", authentication, authorisation, createCart)
+route.put("/users/:userId/cart", authentication, authorisation, updateCart)
+route.get("/users/:userId/cart", authentication, authorisation, getCartDetails)
+route.delete("/users/:userId/cart", authentication, authorisation, deleteCart)
 
 
 //******************* ORDERS APIs ***************************// 
-route.post("/users/:userId/orders", authentication, createOrder)
-route.put("/users/:userId/orders", authentication, updateOrder)
+route.post("/users/:userId/orders", authentication, authorisation, createOrder)
+route.put("/users/:userId/orders", authentication, authorisation, updateOrder)
 
 
 module.exports = route

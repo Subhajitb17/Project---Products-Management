@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");    // Importing
 
-//==============================================Authentication Middleware====================================================//
+//=================================================   [MIDDLEWARES]  ===========================================================//
 
+//Authentication validation
 const authentication = async function (req, res, next) {
     try {
         ///request bearer token from header for authorization
@@ -34,5 +35,35 @@ const authentication = async function (req, res, next) {
     }
 }
 
+
+//Authorization validation
+const authorisation= async function(req,res,next){
+    try {
+        const decodedToken = req.decodedtoken
+        const userId = req.params.userId.trim()
+        
+        if(!userId){
+            return res.status(400).send({status:false,message:"userId is required in the request paramaters!"})
+        }
+        if(!isValidObjectId(userId)){
+            return res.status(401).send({status:false,message:"not a valid userId!"})
+        }
+        const userFound = await userModel.findOne({ _id: userId })
+        if (!userFound) {
+            return res.status(404).send({ status: false, message: `User do not exists!` })
+        }
+        if(decodedToken.userId!=userId){
+            return res.status(403).send({status:false,message:"you are not authorised!"})
+
+        }
+        next()
+        
+    } catch (err) {
+        res.status(500).send({ status: false, error: err.message })
+    }
+}
+
+
+
 // Exporting 
-module.exports = { authentication }     
+module.exports = { authentication, authorisation }     

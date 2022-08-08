@@ -19,16 +19,6 @@ const createCart = async function (req, res) {
     // Destructuring
     let { quantity, productId, cartId } = req.body;
 
-    //Authorization validation
-    //request bearer token from header for authorization
-    let bearerToken = req.headers.authorization;
-    //split barer token and select second position element
-    let token = bearerToken.split(" ")[1]
-    //decoded token verify with secrect key
-    let decodedToken = jwt.verify(token, "group73-project5")
-    //userId from token and userId from params not match
-    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
-
     //request body validation => request body must not be empty
     if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please provide valid request body!" });
 
@@ -147,17 +137,7 @@ const updateCart = async function (req, res) {
   try {
     //request userId from path params
     const userId = req.params.userId;
-    if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
-
-    //Authorization validation
-    //request bearer token from header for authorization
-    let bearerToken = req.headers.authorization;
-    //split barer token and select second position element
-    let token = bearerToken.split(" ")[1]
-    //decoded token verify with secrect key
-    let decodedToken = jwt.verify(token, "group73-project5")
-    //userId from token and userId from params not match
-    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
+    if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });  
 
     //Destructuring
     const { cartId, productId, removeProduct } = req.body
@@ -270,17 +250,7 @@ const getCartDetails = async (req, res) => {
     //request userId from path params
     const userId = req.params.userId
     //userId must be a valid objectId
-    if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }    // 1st V used here
-
-    //Authorization validation
-    //request bearer token from header for authorization
-    let bearerToken = req.headers.authorization;
-    //split barer token and select second position element
-    let token = bearerToken.split(" ")[1]
-    //decoded token verify with secrect key
-    let decodedToken = jwt.verify(token, "group73-project5")
-    //userId from token and userId from params not match
-    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
+    if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }    // 1st V used here 
 
     //DB Call => find cart details by userId from cartModel
     const findCartOfUser = await cartModel.findById({ userId: userId })
@@ -306,16 +276,6 @@ const deleteCart = async (req, res) => {
     const userId = req.params.userId
     //userId must be a valid objectId
     if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }   // 1st V used here
-
-    //Authorization validation
-    //request bearer token from header for authorization
-    let bearerToken = req.headers.authorization;
-    //split barer token and select second position element
-    let token = bearerToken.split(" ")[1]
-    //decoded token verify with secrect key
-    let decodedToken = jwt.verify(token, "group73-project5")
-    //userId from token and userId from params not match
-    if (userId != decodedToken.userId) { return res.status(403).send({ status: false, message: "not authorized!" }) }
 
     //DB Call => find cart details by userId from cartModel
     const findCartOfUser = await cartModel.findById({ userId: userId })
