@@ -163,7 +163,7 @@ const getProducts = async (req, res) => {
         const productList = await productModel.find(filter).sort({ price: priceSort })
 
         // no produt found by price filter
-        if (productList.length === 0) return res.status(400).send({ status: false, message: "no product found!" })
+        if (productList.length === 0) return res.status(404).send({ status: false, message: "no product found!" })
 
         //Successfull execution response with productDetails
         res.status(200).send({ status: true, message: 'Product list', data: productList })

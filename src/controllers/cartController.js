@@ -48,14 +48,14 @@ const createCart = async function (req, res) {
     const findUser = await userModel.findById({ _id: userId });
     //user not found in DB
     if (!findUser) {
-      return res.status(400).send({ status: false, message: `User doesn't exist by ${userId}!` });
+      return res.status(404).send({ status: false, message: `User doesn't exist by ${userId}!` });
     }
 
     //DB call => find product from productModel by productId
     const findProduct = await productModel.findById({ _id: productId });
     //product not found in DB
     if (!findProduct) {
-      return res.status(400).send({ status: false, message: `Product doesn't exist by ${productId}!` });
+      return res.status(404).send({ status: false, message: `Product doesn't exist by ${productId}!` });
     }
 
     //cart validation => if cartId given in request body 
@@ -68,7 +68,7 @@ const createCart = async function (req, res) {
       let duplicateCart = await cartModel.findById({ _id: cartId })
       //cart not present in the DB
       if (!duplicateCart) {
-        return res.status(400).send({ status: false, message: "cart does not exists!" })
+        return res.status(404).send({ status: false, message: "cart does not exists!" })
       }
     }
     //if cartId not given in request body
@@ -184,7 +184,7 @@ const updateCart = async function (req, res) {
     //DB call => find product from productModel by productId
     let product = await productModel.findOne({ _id: productId, isDeleted: false })
     //product not found in the DB
-    if (!product) { return res.status(400).send({ status: false, message: "Product not found!" }) }
+    if (!product) { return res.status(404).send({ status: false, message: "Product not found!" }) }
 
     //remove product validation => remove product must be 0 or 1
     if (!(removeProduct == 1 || removeProduct == 0)) {
