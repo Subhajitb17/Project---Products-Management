@@ -1,4 +1,7 @@
-const jwt = require("jsonwebtoken");    // Importing
+const jwt = require("jsonwebtoken");    // Importing JWT
+const userModel = require("../models/userModel");     // Importing User Model
+const { isValidObjectId } = require("../middleware/validator");  // IMPORTING VALIDATORS
+
 
 //=================================================   [MIDDLEWARES]  ===========================================================//
 
@@ -50,7 +53,7 @@ const authorisation= async function(req,res,next){
         }
         const userFound = await userModel.findOne({ _id: userId })
         if (!userFound) {
-            return res.status(404).send({ status: false, message: `User do not exists!` })
+            return res.status(404).send({ status: false, message: `User does not exists!` })
         }
         if(decodedToken.userId!=userId){
             return res.status(403).send({status:false,message:"you are not authorised!"})
