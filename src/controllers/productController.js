@@ -121,7 +121,7 @@ const getProducts = async (req, res) => {
     // Object Manupulation
     const filter = { isDeleted: false };
     // Destructuring  
-    const { size, name, priceGreaterThan, priceLessThan } = productQuery;
+    const { size, name, priceGreaterThan, priceLessThan, priceSort } = productQuery;
 
     //size validation
     if (objectValue(size)) {
@@ -150,20 +150,30 @@ const getProducts = async (req, res) => {
       filter.price = { $gte: priceGreaterThan, $lte: priceLessThan }
     }
 
-    //DB call => select product from DB by price filter sort the product min price to max price
-    const productList = await productModel.find(filter).sort({ price: 1 })
+    if (objectValue(priceSort)) {
+      if (!(priceSort == 1 || priceSort == -1)) {
+          return res.status(400).send({ status: false, msg: "we can only sort price by value 1 or -1!" })
+      }
+    }
+    else {
+      return res.status(400).send({ status: false, msg: "enter valid priceSort of 1 or -1 to filter products!" })
+    }
 
-    // no produt found by price filter
-    if (productList.length === 0) return res.status(400).send({ status: false, message: "no product found!" })
+        //DB call => select product from DB by price filter sort the product min price to max price
+        const productList = await productModel.find(filter).sort({ price: priceSort })
 
-    //Successfull execution response with productDetails
-    res.status(200).send({ status: true, message: 'Product list', data: productList })
+        // no produt found by price filter
+        if (productList.length === 0) return res.status(400).send({ status: false, message: "no product found!" })
+
+        //Successfull execution response with productDetails
+        res.status(200).send({ status: true, message: 'Product list', data: productList })
 
   }
   catch (error) {
     res.status(500).send({ status: false, message: error.message });
   }
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
