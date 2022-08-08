@@ -38,7 +38,7 @@ const createOrder = async function (req, res) {
     //DB call => find cart details from cartModel by userId and cartId
     const cartItems = await cartModel.findOne({ _id: cartId, userId: userId, isDeleted: false })
     //userId not present in the DB
-    if (cartItems.userId != userId) return res.status(400).send({ status: false, message: `${userId} is not present in the DB!` });
+    if (cartItems.userId != userId) return res.status(404).send({ status: false, message: `${userId} is not present in the DB!` });
     // cart not present in the DB or empty
     if (!cartItems) return res.status(400).send({ status: false, message: "Either cart is empty or does not exist!" });
 
