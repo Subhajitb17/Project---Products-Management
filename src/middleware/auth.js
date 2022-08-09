@@ -42,8 +42,8 @@ const authentication = async function (req, res, next) {
 //Authorization validation
 const authorisation= async function(req,res,next){
     try {
-        const decodedToken = req.decodedtoken
-        const userId = req.params.userId.trim()
+        const decodedToken = req.decodedToken
+        const userId = req.params.userId
         
         if(!userId){
             return res.status(400).send({status:false,message:"userId is required in the request paramaters!"})
