@@ -305,7 +305,7 @@ const updateProduct = async function (req, res) {
     //DB call and Update => update product details by requested body parameters 
     const updatedProducts = await productModel.findOneAndUpdate(
       { _id: productId },
-      { $set: { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, style, installments }, $addToSet: { availableSizes } },
+      { $set: { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, style, installments, availableSizes } },
       { new: true }
     );
     //Successfull upadte product details return response to body

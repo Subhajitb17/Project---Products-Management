@@ -1,6 +1,6 @@
 const cartModel = require("../models/cartModel")
 const orderModel = require("../models/orderModel")
-const jwt = require('jsonwebtoken')
+const userModel = require("../models/userModel");
 const { keyValue, isValidObjectId, objectValue } = require("../middleware/validator");  // IMPORTING VALIDATORS
 
 
@@ -76,67 +76,74 @@ const createOrder = async function (req, res) {
 
 const updateOrder = async function (req, res) {
   try {
-    //request userId from path params
-    const userId = req.params.userId;
-    //userId must be a valid objectId
-    if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
+    let userId = req.params.userId.trim()
+    let { orderId, status } = req.body
 
-    // Destructuring
-    const { orderId, status } = req.body
-    //request body mjust not be empty
-    if (!keyValue(req.body)) return res.status(400).send({ status: false, message: "Please enter something!" });
-
-    //orderId validation => orderId is mandatory and must not be empty
-    if (!objectValue(orderId)) return res.status(400).send({ status: false, message: "Please provide orderId!" });
-    //orderId must be a valid objectId
-    if (!isValidObjectId(orderId)) return res.status(400).send({ status: false, message: "Please provide valid orderId!" });
-
-    //DB call => find order details from orderModel by userId and orderId
-    const orderOfUser = await orderModel.findOne({ _id: orderId, userId: userId, isDeleted: false })
-    //userId not present in the DB
-    if (orderOfUser.userId != userId) return res.status(404).send({ status: false, message: `${userId} is not present in the DB!` });
-    // order not present in the DB means order not placed yet
-    if (!orderOfUser) return res.status(400).send({ status: false, message: "No such order has been placed yet!" });
-
-    //if order status completed or canceled
-    if (orderOfUser.status == 'completed' || orderOfUser.status == 'cancled') {
-      return res.status(400).send({ status: false, message: "Order already completed or cancelled!" })
+    if (!isValidObjectId(orderId)) {
+      return res.status(400).send({ status: false, message: `${orderId} not a object id` })
+    }
+    if (req.body.cancellable) {
+      return res.status(400).send({ status: false, message: "this feature(cancellable ) is not available right now" })
+    }
+    let userCheck = await userModel.findOne({ _id: userId })
+    if (!userCheck) {
+      return res.status(404).send({ status: false, message: "user id doesn't exist" })
+    }
+    let orderCheck = await orderModel.findOne({ _id: orderId })
+    if (!orderCheck) {
+      return res.status(404).send({ status: false, message: "order is not created " })
+    }
+    if (orderCheck.userId.toString() !== userCheck._id.toString()) {
+      return res.status(404).send({ status: false, message: `order is not for ${userId}, you cannot order it  ` })
     }
 
-    //if cancellable is equal to true
-    if (orderOfUser.cancellable === true) {
-      //if status completed or cancled
-      if (!(['completed', 'cancled'].includes(status))) {
-        return res.status(400).send({ status: false, message: "Order status must be either 'Completed' or 'Cancelled'!" });
+    if (orderCheck.cancellable == false) {
+      if (status == "canceled") {
+        return res.status(400).send({ status: false, message: `you cannot canceled this order ` })
       }
-      //if status is pending
-      if (orderOfUser.status == "pending") {
-        //DB call and Update => update order details to completed or cancled as requested in the body
-        let updateOrder = await orderModel.findOneAndUpdate({ orderId: orderId }, { $set: { status: status } }, { new: true })
-        //Successfull upadate order status return response to body
-        return res.status(200).send({ status: true, message: "Success", data: updateOrder })
+      if (status != "completed") {
+        return res.status(400).send({ status: false, message: `this order can only be completed` })
+      }
+    }
+    else if (orderCheck.status == "completed") {
+      //
+      if (status == "pending") {
+        return res.status(400).send({ status: false, message: "this can only be completed !!cannot make it pending" })
+      }
+      if (status == "canceled") {
+        return res.status(400).send({ status: false, message: "this can only be completed !!cannot make it canceled" })
+      }
+    } else if (orderCheck.status == "canceled") {
+      if (status != "canceled") {
+        return res.status(400).send({ status: false, message: "this has canceled please create a oreder" })
+      }
+    }
+    else {
+      let sts = ["completed", "canceled"]
+      if (sts.includes(status) == false) {
+        return res.status(400).send({ status: false, message: "this can only be completed or canceled" })
       }
     }
 
-    //if cancellable is equal to false
-    if (orderOfUser.cancellable === false) {
-      //if status completed
-      if (!(['completed'].includes(status))) {
-        return res.status(400).send({ status: false, message: "Order status must be 'Completed'!" });
+    orderCheck.status = status
+    if (req.body.isDeleted == Boolean) {
+      orderCheck.isDeleted = req.body.isDeleted
+      if (req.body.isDeleted == true) {
+        orderCheck.deletedAt = new Date.now()
       }
-      //if status is pending
-      if (orderOfUser.status == "pending") {
-        //DB call and Update => update order details to completed as requested in the body
-        let updateOrder = await orderModel.findOneAndUpdate({ orderId: orderId }, { $set: { status: status } }, { new: true })
-        //Successfull upadate order status return response to body
-        return res.status(200).send({ status: true, message: "Success", data: updateOrder })
-      }
+
     }
+    let updateOrder = await orderModel.findByIdAndUpdate({ _id: orderId }, orderCheck, { new: true })
+    updateOrder = { ...updateOrder.toObject() }
+    updateOrder.items.map(x => delete x._id)
+    res.status(201).send({ status: true, message: "Success", data: updateOrder })
   }
   catch (error) {
-    res.status(500).send({ status: false, data: error.message });
+    res.status(500).send({ status: false, message: error.message })
+    console.log(error)
   }
-};
+
+}
 
 // Destructuring & Exporting
 module.exports = { createOrder, updateOrder }
