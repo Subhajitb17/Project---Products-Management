@@ -55,7 +55,7 @@ const createCart = async function (req, res) {
         return res.status(400).send({ status: false, message: "Please provide valid cartId!" });
       }
       //Unique cart Validation => checking from DB that cart present in DB or not
-      let duplicateCart = await cartModel.findOne( {userId : userId} )
+      let duplicateCart = await cartModel.findOne({ userId: userId })
       //cart not present in the DB
       if (!duplicateCart) {
         return res.status(404).send({ status: false, message: "cart does not exists!" })
@@ -63,7 +63,7 @@ const createCart = async function (req, res) {
     }
     //if cartId not given in request body
     //DB call => find cart from cartModel by userId
-    const findCartOfUser = await cartModel.findOne( {userId : userId} )
+    const findCartOfUser = await cartModel.findOne({ userId: userId })
     //if cart not found for user
     if (!findCartOfUser) {
       //create cart for the user
@@ -137,7 +137,7 @@ const updateCart = async function (req, res) {
   try {
     //request userId from path params
     const userId = req.params.userId;
-    if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });  
+    if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please provide valid User Id!" });
 
     //Destructuring
     const { cartId, productId, removeProduct } = req.body
@@ -151,7 +151,7 @@ const updateCart = async function (req, res) {
     if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, message: "Please enter valid cartId!" })
 
     //DB call => find cart from carttModel by cartId
-    let cart = await cartModel.findOne( {userId : userId} )
+    let cart = await cartModel.findOne({ userId: userId })
     //cart not found in DB
     if (!cart) { return res.status(400).send({ status: false, message: "Cart does not exist in the DB! " }) }
     //cart is blank
@@ -253,7 +253,7 @@ const getCartDetails = async (req, res) => {
     if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }    // 1st V used here 
 
     //DB Call => find cart details by userId from cartModel
-    const findCartOfUser = await cartModel.findOne( {userId : userId} )
+    const findCartOfUser = await cartModel.findOne({ userId: userId })
     //cart not found in DB
     if (!findCartOfUser) { return res.status(404).send({ status: false, message: "Cart not found or does not exist!" }) }
     //Successfull execution response with cart Details
@@ -267,7 +267,7 @@ const getCartDetails = async (req, res) => {
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////      GET       CART       DETAILS       API       /////////////////////////////////
+/////////////////////////      DELETE       CART       DETAILS       API       //////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const deleteCart = async (req, res) => {
@@ -275,17 +275,17 @@ const deleteCart = async (req, res) => {
     //request userId from path patrams
     const userId = req.params.userId
     //userId must be a valid objectId
-    if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }   // 1st V used here
+    if (!isValidObjectId(userId)) { return res.status(400).send({ status: false, message: "userId is invalid!" }) }
 
     //DB Call => find cart details by userId from cartModel
-    const findCartOfUser = await cartModel.findOne( {userId : userId} )
+    const findCartOfUser = await cartModel.findOne({ userId: userId })
     //cart not found in DB
     if (!findCartOfUser) { return res.status(404).send({ status: false, message: "Cart not found or does not exist!" }) }
 
-      //DB call and Update => update isDeleted as true
-      await cartModel.findOneAndUpdate({ userId: userId }, { $set: { items: [], totalPrice: 0, totalItems: 0 } }, { new: true })
-      res.status(200).send({ status: true, message: "Cart has been deleted successfully!" })
-      
+    //DB call and Update => update isDeleted as true
+    await cartModel.findOneAndUpdate({ userId: userId }, { $set: { items: [], totalPrice: 0, totalItems: 0 } }, { new: true })
+    res.status(200).send({ status: true, message: "Cart has been deleted successfully!" })
+
   }
   catch (err) {
     return res.status(500).send({ status: false, message: err.message });

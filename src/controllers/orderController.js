@@ -136,7 +136,7 @@ const updateOrder = async function (req, res) {
     let updateOrder = await orderModel.findByIdAndUpdate({ _id: orderId }, orderCheck, { new: true })
     updateOrder = { ...updateOrder.toObject() }
     updateOrder.items.map(x => delete x._id)
-    res.status(201).send({ status: true, message: "Success", data: updateOrder })
+    res.status(200).send({ status: true, message: "Success", data: updateOrder })
   }
   catch (error) {
     res.status(500).send({ status: false, message: error.message })
@@ -147,11 +147,4 @@ const updateOrder = async function (req, res) {
 
 // Destructuring & Exporting
 module.exports = { createOrder, updateOrder }
-
-
-
-
-
-
-
 

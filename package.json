@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Saswath1403/Project-Products-Management.git"
+    "url": "git+https://github.com/Subhajitb17/Project---Products-Management.git"
   },
   "author": "Saswath Singh, Subhajit Bokshi, Soumyaprakash Ojha, Unmesh Dhore",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Saswath1403/Project-Products-Management/issues"
+    "url": "https://github.com/Subhajitb17/Project---Products-Management/issues"
   },
-  "homepage": "https://github.com/Saswath1403/Project-Products-Management#readme",
+  "homepage": "https://github.com/Subhajitb17/Project---Products-Management#readme",
   "dependencies": {
     "aws-sdk": "^2.1181.0",
     "bcrypt": "^5.0.1",
