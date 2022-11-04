@@ -309,7 +309,7 @@ const updateUserDetails = async function (req, res) {
             { $set: { fname, lname, email, phone, password, address, profileImage } },
             { new: true }
         );
-        //Successfull upadte user details return response to body
+        //Successfull update user details return response to body
         return res.status(200).send({ status: true, message: 'Success', data: updatedUserDetails });
 
     }

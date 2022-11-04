@@ -5,7 +5,6 @@ const ObjectId = mongoose.Schema.Types.ObjectId
 
 const cartSchema = new mongoose.Schema(
     {
-
         userId: {
             type: ObjectId,
             ref: "user",
@@ -43,5 +42,5 @@ const cartSchema = new mongoose.Schema(
     }, { timestamps: true }
 )
 
-
+// Exporting
 module.exports = mongoose.model("cart", cartSchema)

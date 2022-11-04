@@ -76,48 +76,69 @@ const createOrder = async function (req, res) {
 
 const updateOrder = async function (req, res) {
   try {
+    //request userId from path params
     let userId = req.params.userId.trim()
-    let { orderId, status } = req.body
-
+    //userId must be a valid objectId
     if (!isValidObjectId(orderId)) {
       return res.status(400).send({ status: false, message: `${orderId} not a object id` })
     }
+
+    // Destructuring
+    let { orderId, status } = req.body
+
+    // 
     if (req.body.cancellable) {
       return res.status(400).send({ status: false, message: "this feature(cancellable ) is not available right now" })
     }
+
+    //DB Call => find by userId from userModel
     let userCheck = await userModel.findOne({ _id: userId })
+    //user not found in DB
     if (!userCheck) {
       return res.status(404).send({ status: false, message: "user id doesn't exist" })
     }
+
+    //DB Call => find by orderId from orderModel
     let orderCheck = await orderModel.findOne({ _id: orderId })
+    //Order not found
     if (!orderCheck) {
       return res.status(404).send({ status: false, message: "order is not created " })
     }
+    //check userId from order same with the login user or not 
     if (orderCheck.userId.toString() !== userCheck._id.toString()) {
       return res.status(404).send({ status: false, message: `order is not for ${userId}, you cannot order it  ` })
     }
 
+    // order is cancelable => false
     if (orderCheck.cancellable == false) {
+      //order can not be canceled
       if (status == "canceled") {
         return res.status(400).send({ status: false, message: `you cannot canceled this order ` })
       }
+      //order must be complete => only option for the "cancelable -- false" order
       if (status != "completed") {
         return res.status(400).send({ status: false, message: `this order can only be completed` })
       }
     }
+    //order status => completed
     else if (orderCheck.status == "completed") {
-      //
+      //completed order can not be panding again
       if (status == "pending") {
         return res.status(400).send({ status: false, message: "this can only be completed !!cannot make it pending" })
       }
+      //completed order can not be canceled
       if (status == "canceled") {
         return res.status(400).send({ status: false, message: "this can only be completed !!cannot make it canceled" })
       }
-    } else if (orderCheck.status == "canceled") {
+    }
+    //oder status => canceled
+    else if (orderCheck.status == "canceled") {
+      // canceled order status can not be changed further
       if (status != "canceled") {
         return res.status(400).send({ status: false, message: "this has canceled please create a oreder" })
       }
     }
+    // order status => complete or canceled (when cancelabled as true)
     else {
       let sts = ["completed", "canceled"]
       if (sts.includes(status) == false) {
@@ -125,17 +146,28 @@ const updateOrder = async function (req, res) {
       }
     }
 
+    // check status of order from orderModel
     orderCheck.status = status
+    // is Deleted must be Boolean => deleted or not deleted 
     if (req.body.isDeleted == Boolean) {
+      // request isDeleted value from request body
       orderCheck.isDeleted = req.body.isDeleted
+      // if isDeleted => true
       if (req.body.isDeleted == true) {
+        // create the deleted time and date
         orderCheck.deletedAt = new Date.now()
       }
-
     }
+
+    //DB call and Update => update order details by requested body parameters 
     let updateOrder = await orderModel.findByIdAndUpdate({ _id: orderId }, orderCheck, { new: true })
+
+    // using spread operator and toObject property => copy all the updated data to a object
     updateOrder = { ...updateOrder.toObject() }
+
+    //map => returns the key, value pair in the same order as inserted.
     updateOrder.items.map(x => delete x._id)
+    //Successfull upadte user details return response to body
     res.status(200).send({ status: true, message: "Success", data: updateOrder })
   }
   catch (error) {

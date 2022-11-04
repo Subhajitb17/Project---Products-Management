@@ -68,8 +68,7 @@ const productSchema = new mongoose.Schema(
 
         isDeleted: { type: Boolean, default: false },
 
-
     }, { timestamps: true })
 
-
+// Exporting
 module.exports = mongoose.model("product", productSchema)

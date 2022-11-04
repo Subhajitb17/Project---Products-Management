@@ -5,7 +5,6 @@ const ObjectId = mongoose.Schema.Types.ObjectId
 
 const orderSchema = new mongoose.Schema(
     {
-
         userId: {
             type: ObjectId,
             ref: "user",
@@ -64,5 +63,5 @@ const orderSchema = new mongoose.Schema(
     }, { timestamps: true }
 )
 
-
+// Exporting
 module.exports = mongoose.model("order", orderSchema)
